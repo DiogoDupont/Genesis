@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <LangVersion>7.3</LangVersion>
+    <AssemblyName>Genesis</AssemblyName>
+    <RootNamespace>Genesis</RootNamespace>
+    <ApplicationIcon>Recursos\genesis.ico</ApplicationIcon>
+    <Product>Genesis</Product>
+    <AssemblyTitle>Genesis</AssemblyTitle>
+    <Description>Onde a lógica nasce. Gerador de programas de CLP para TIA Portal.</Description>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Siemens.Engineering">
+      <HintPath>C:\Program Files\Siemens\Automation\Portal V20\PublicAPI\V20\Siemens.Engineering.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- logo, símbolo e ícone embutidos no executável (lidos por Tema.Imagem / Tema.IconeApp) -->
+  <ItemGroup>
+    <EmbeddedResource Include="Recursos\logo.png" />
+    <EmbeddedResource Include="Recursos\marca.png" />
+    <EmbeddedResource Include="Recursos\genesis.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="App.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

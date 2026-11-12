@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 300" width="1180" height="300">
+<defs>
+  <linearGradient id="gG" x1="0.1" y1="0" x2="0.9" y2="1">
+    <stop offset="0" stop-color="#9BEBFF"/><stop offset="0.45" stop-color="#3DB8FF"/><stop offset="1" stop-color="#1673F5"/>
+  </linearGradient>
+  <linearGradient id="gBg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#113457"/><stop offset="0.55" stop-color="#0A2038"/><stop offset="1" stop-color="#061321"/>
+  </linearGradient>
+  <radialGradient id="gHalo" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#2FA8FF" stop-opacity="0.55"/><stop offset="0.6" stop-color="#1683FF" stop-opacity="0.12"/><stop offset="1" stop-color="#1683FF" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="gSpark" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#FFFFFF"/><stop offset="0.6" stop-color="#DFF6FF"/><stop offset="1" stop-color="#9BE4FF"/>
+  </radialGradient>
+  <linearGradient id="gTxt" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#F4FBFF"/><stop offset="1" stop-color="#A9DCFF"/>
+  </linearGradient>
+  <filter id="fGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter>
+  <filter id="fGlowS" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
+  <filter id="fGlowT" x="-20%" y="-60%" width="140%" height="220%"><feGaussianBlur stdDeviation="9"/></filter>
+</defs>
+<circle cx="150" cy="150" r="170" fill="url(#gHalo)" opacity="0.45"/>
+<path d="M 223.54 88.29 A 96 96 0 1 0 246.00 150.00 L 151.92 150.00" fill="none" stroke="#1E8FFF" stroke-width="37.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.55" filter="url(#fGlow)"/>
+<path d="M 223.54 88.29 A 96 96 0 1 0 246.00 150.00 L 151.92 150.00" fill="none" stroke="url(#gG)" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="90.90" cy="74.35" r="6.60" fill="#061321" opacity="0.9"/>
+<circle cx="90.90" cy="225.65" r="6.60" fill="#061321" opacity="0.9"/>
+<circle cx="150" cy="150" r="60.8" fill="url(#gHalo)"/>
+<path d="M 150.00 118.00 Q 153.62 146.38 182.00 150.00 Q 153.62 153.62 150.00 182.00 Q 146.38 153.62 118.00 150.00 Q 146.38 146.38 150.00 118.00 Z" fill="#7FD8FF" opacity="0.9" filter="url(#fGlowS)"/>
+<path d="M 150.00 118.00 Q 153.62 146.38 182.00 150.00 Q 153.62 153.62 150.00 182.00 Q 146.38 153.62 118.00 150.00 Q 146.38 146.38 150.00 118.00 Z" fill="url(#gSpark)"/>
+<g transform="translate(320.0,100.0) scale(1.0)">
+<path d="M 92 24 L 92 20 Q 92 0 72 0 L 20 0 Q 0 0 0 20 L 0 80 Q 0 100 20 100 L 72 100 Q 92 100 92 80 L 92 52.0 L 47.8 52.0 M 224 0 L 152 0 Q 132 0 132 20 L 132 80 Q 132 100 152 100 L 224 100 M 132 50.0 L 209.3 50.0 M 264 100 L 264 0 L 356 100 L 356 0 M 488 0 L 416 0 Q 396 0 396 20 L 396 80 Q 396 100 416 100 L 488 100 M 396 50.0 L 473.3 50.0 M 620 24 L 620 20 Q 620 0 600 0 L 548 0 Q 528 0 528 20 L 528 30.0 Q 528 50.0 548 50.0 L 600 50.0 Q 620 50.0 620 70.0 L 620 80 Q 620 100 600 100 L 548 100 Q 528 100 528 80 L 528 76 M 660 0 L 660 100 M 792 24 L 792 20 Q 792 0 772 0 L 720 0 Q 700 0 700 20 L 700 30.0 Q 700 50.0 720 50.0 L 772 50.0 Q 792 50.0 792 70.0 L 792 80 Q 792 100 772 100 L 720 100 Q 700 100 700 80 L 700 76" fill="none" stroke="#2A9BFF" stroke-width="19" stroke-linecap="round" stroke-linejoin="round" opacity="0.45" filter="url(#fGlowT)"/>
+<path d="M 92 24 L 92 20 Q 92 0 72 0 L 20 0 Q 0 0 0 20 L 0 80 Q 0 100 20 100 L 72 100 Q 92 100 92 80 L 92 52.0 L 47.8 52.0 M 224 0 L 152 0 Q 132 0 132 20 L 132 80 Q 132 100 152 100 L 224 100 M 132 50.0 L 209.3 50.0 M 264 100 L 264 0 L 356 100 L 356 0 M 488 0 L 416 0 Q 396 0 396 20 L 396 80 Q 396 100 416 100 L 488 100 M 396 50.0 L 473.3 50.0 M 620 24 L 620 20 Q 620 0 600 0 L 548 0 Q 528 0 528 20 L 528 30.0 Q 528 50.0 548 50.0 L 600 50.0 Q 620 50.0 620 70.0 L 620 80 Q 620 100 600 100 L 548 100 Q 528 100 528 80 L 528 76 M 660 0 L 660 100 M 792 24 L 792 20 Q 792 0 772 0 L 720 0 Q 700 0 700 20 L 700 30.0 Q 700 50.0 720 50.0 L 772 50.0 Q 792 50.0 792 70.0 L 792 80 Q 792 100 772 100 L 720 100 Q 700 100 700 80 L 700 76" fill="none" stroke="url(#gTxt)" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</svg>

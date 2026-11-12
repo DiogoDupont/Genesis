@@ -1,0 +1,545 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V20" />
+  <DocumentInfo>
+    <Created>2026-10-20T17:54:21.8538668Z</Created>
+    <ExportSetting>WithDefaults</ExportSetting>
+    <InstalledProducts>
+      <Product>
+        <DisplayName>Totally Integrated Automation Portal</DisplayName>
+        <DisplayVersion>V20 Update 3</DisplayVersion>
+      </Product>
+      <OptionPackage>
+        <DisplayName>TIA Portal Openness</DisplayName>
+        <DisplayVersion>V20 Update 3</DisplayVersion>
+      </OptionPackage>
+      <OptionPackage>
+        <DisplayName>TIA Portal Version Control Interface</DisplayName>
+        <DisplayVersion>V20 Update 3</DisplayVersion>
+      </OptionPackage>
+      <Product>
+        <DisplayName>SINAMICS Startdrive Advanced</DisplayName>
+        <DisplayVersion>V20 SP1</DisplayVersion>
+      </Product>
+      <OptionPackage>
+        <DisplayName>SINAMICS Startdrive G130, G150, S120, S150, SINAMICS MV, G220, S200, S210</DisplayName>
+        <DisplayVersion>V20 SP1</DisplayVersion>
+      </OptionPackage>
+      <OptionPackage>
+        <DisplayName>SINAMICS Startdrive G110M, G120, G120C, G120D, G120P, G115D</DisplayName>
+        <DisplayVersion>V20 SP1</DisplayVersion>
+      </OptionPackage>
+      <Product>
+        <DisplayName>STEP 7 Professional</DisplayName>
+        <DisplayVersion>V20 Update 3</DisplayVersion>
+      </Product>
+      <OptionPackage>
+        <DisplayName>STEP 7 Safety</DisplayName>
+        <DisplayVersion>V20 Update 2</DisplayVersion>
+      </OptionPackage>
+      <Product>
+        <DisplayName>WinCC Basic/Comfort/Advanced</DisplayName>
+        <DisplayVersion>V20 Update 3</DisplayVersion>
+      </Product>
+      <Product>
+        <DisplayName>WinCC Professional</DisplayName>
+        <DisplayVersion>V20 Update 3</DisplayVersion>
+      </Product>
+      <Product>
+        <DisplayName>WinCC Unified</DisplayName>
+        <DisplayVersion>V20 Update 3</DisplayVersion>
+      </Product>
+    </InstalledProducts>
+  </DocumentInfo>
+  <SW.Blocks.FB ID="0">
+    <AttributeList>
+      <AutoNumber>true</AutoNumber>
+      <HeaderAuthor />
+      <HeaderFamily />
+      <HeaderName />
+      <HeaderVersion>0.1</HeaderVersion>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="SIS_LEI_VAZ" Datatype="Real" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <Comment>
+        <MultiLanguageText Lang="pt-BR">SISTEMA LEITURA DE VAZAO</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="MOT_SET_VEL" Datatype="Real" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <Comment>
+        <MultiLanguageText Lang="pt-BR">SETA LEITURA VELOCIDADE MOTOR</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="MOT_SET_VAZ" Datatype="Real" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <Comment>
+        <MultiLanguageText Lang="pt-BR">SETA LEITURA VAZAO MOTOR</MultiLanguageText>
+      </Comment>
+    </Member>
+  </Section>
+  <Section Name="Output">
+    <Member Name="MOT_LEI_VAZ" Datatype="Real" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <Comment>
+        <MultiLanguageText Lang="pt-BR">LEITURA VAZAO MOTOR</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="MOT_SET_POR" Datatype="Real" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <Comment>
+        <MultiLanguageText Lang="pt-BR">SET PORCENTAGEM DO MOTOR</MultiLanguageText>
+      </Comment>
+    </Member>
+  </Section>
+  <Section Name="InOut" />
+  <Section Name="Static">
+    <Member Name="aux" Datatype="Real" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="BL_ANALOGICA_1" Datatype="&quot;BL_ANALOGICA&quot;" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <Sections>
+        <Section Name="Input">
+          <Member Name="IN MIN" Datatype="Real" />
+          <Member Name="IN MAX" Datatype="Real" />
+          <Member Name="IN ENTRADA" Datatype="Real" />
+          <Member Name="OUT MIN" Datatype="Real" />
+          <Member Name="OUT MAX" Datatype="Real" />
+        </Section>
+        <Section Name="Output">
+          <Member Name="OUT VALOR" Datatype="Real" />
+          <Member Name="OUT_POR" Datatype="Real" />
+          <Member Name="OUT_ANA" Datatype="Real" />
+        </Section>
+        <Section Name="InOut" />
+        <Section Name="Static">
+          <Member Name="AUX" Datatype="Real" />
+        </Section>
+      </Sections>
+    </Member>
+    <Member Name="BL_ANALOGICA_2" Datatype="&quot;BL_ANALOGICA&quot;" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <Sections>
+        <Section Name="Input">
+          <Member Name="IN MIN" Datatype="Real" />
+          <Member Name="IN MAX" Datatype="Real" />
+          <Member Name="IN ENTRADA" Datatype="Real" />
+          <Member Name="OUT MIN" Datatype="Real" />
+          <Member Name="OUT MAX" Datatype="Real" />
+        </Section>
+        <Section Name="Output">
+          <Member Name="OUT VALOR" Datatype="Real" />
+          <Member Name="OUT_POR" Datatype="Real" />
+          <Member Name="OUT_ANA" Datatype="Real" />
+        </Section>
+        <Section Name="InOut" />
+        <Section Name="Static">
+          <Member Name="AUX" Datatype="Real" />
+        </Section>
+      </Sections>
+    </Member>
+    <Member Name="BL_ANALOGICA_3" Datatype="&quot;BL_ANALOGICA&quot;" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <Sections>
+        <Section Name="Input">
+          <Member Name="IN MIN" Datatype="Real" />
+          <Member Name="IN MAX" Datatype="Real" />
+          <Member Name="IN ENTRADA" Datatype="Real" />
+          <Member Name="OUT MIN" Datatype="Real" />
+          <Member Name="OUT MAX" Datatype="Real" />
+        </Section>
+        <Section Name="Output">
+          <Member Name="OUT VALOR" Datatype="Real" />
+          <Member Name="OUT_POR" Datatype="Real" />
+          <Member Name="OUT_ANA" Datatype="Real" />
+        </Section>
+        <Section Name="InOut" />
+        <Section Name="Static">
+          <Member Name="AUX" Datatype="Real" />
+        </Section>
+      </Sections>
+    </Member>
+  </Section>
+  <Section Name="Temp" />
+  <Section Name="Constant" />
+</Sections></Interface>
+      <IsIECCheckEnabled>false</IsIECCheckEnabled>
+      <IsRetainMemResEnabled>false</IsRetainMemResEnabled>
+      <MemoryLayout>Optimized</MemoryLayout>
+      <MemoryReserve>100</MemoryReserve>
+      <Name>BL_REGULAGEM_SAÍDA%_1</Name>
+      <Namespace />
+      <Number>8</Number>
+      <ProgrammingLanguage>LAD</ProgrammingLanguage>
+      <SetENOAutomatically>false</SetENOAutomatically>
+      <UDABlockProperties />
+      <UDAEnableTagReadback>false</UDAEnableTagReadback>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text>bloco faz a regulagem da sáida de 0-100% dependendo de uma entrada análogica um set point de % e de um tag nominal de vazão da bomba l/s </Text>
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>es-ES</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>pt-BR</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <SW.Blocks.CompileUnit ID="5" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><FlgNet xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/FlgNet/v5">
+  <Parts>
+    <Access Scope="LiteralConstant" UId="21">
+      <Constant>
+        <ConstantType>Real</ConstantType>
+        <ConstantValue>0.0</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="22">
+      <Constant>
+        <ConstantType>Real</ConstantType>
+        <ConstantValue>100.0</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LocalVariable" UId="23">
+      <Symbol>
+        <Component Name="SIS_LEI_VAZ" />
+      </Symbol>
+    </Access>
+    <Access Scope="LiteralConstant" UId="24">
+      <Constant>
+        <ConstantType>Real</ConstantType>
+        <ConstantValue>0.0</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LocalVariable" UId="25">
+      <Symbol>
+        <Component Name="MOT_SET_VAZ" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="26">
+      <Symbol>
+        <Component Name="aux" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="27">
+      <Symbol>
+        <Component Name="MOT_SET_VAZ" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="28">
+      <Symbol>
+        <Component Name="aux" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="29">
+      <Symbol>
+        <Component Name="MOT_SET_VEL" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="30">
+      <Symbol>
+        <Component Name="MOT_SET_POR" />
+      </Symbol>
+    </Access>
+    <Access Scope="LiteralConstant" UId="31">
+      <Constant>
+        <ConstantType>Real</ConstantType>
+        <ConstantValue>100.0</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LocalVariable" UId="32">
+      <Symbol>
+        <Component Name="MOT_SET_POR" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="33">
+      <Symbol>
+        <Component Name="MOT_SET_VAZ" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="34">
+      <Symbol>
+        <Component Name="MOT_LEI_VAZ" />
+      </Symbol>
+    </Access>
+    <Call UId="35">
+      <CallInfo Name="BL_ANALOGICA" BlockType="FB">
+        <Instance Scope="LocalVariable" UId="36">
+          <Component Name="BL_ANALOGICA_1" />
+        </Instance>
+        <Parameter Name="IN MIN" Section="Input" Type="Real" />
+        <Parameter Name="IN MAX" Section="Input" Type="Real" />
+        <Parameter Name="IN ENTRADA" Section="Input" Type="Real" />
+        <Parameter Name="OUT MIN" Section="Input" Type="Real" />
+        <Parameter Name="OUT MAX" Section="Input" Type="Real" />
+        <Parameter Name="OUT VALOR" Section="Output" Type="Real" />
+        <Parameter Name="OUT_POR" Section="Output" Type="Real" />
+        <Parameter Name="OUT_ANA" Section="Output" Type="Real" />
+      </CallInfo>
+    </Call>
+    <Call UId="37">
+      <CallInfo Name="BL_ANALOGICA" BlockType="FB">
+        <Instance Scope="LocalVariable" UId="38">
+          <Component Name="BL_ANALOGICA_2" />
+        </Instance>
+        <Parameter Name="IN MIN" Section="Input" Type="Real" />
+        <Parameter Name="IN MAX" Section="Input" Type="Real" />
+        <Parameter Name="IN ENTRADA" Section="Input" Type="Real" />
+        <Parameter Name="OUT MIN" Section="Input" Type="Real" />
+        <Parameter Name="OUT MAX" Section="Input" Type="Real" />
+        <Parameter Name="OUT VALOR" Section="Output" Type="Real" />
+        <Parameter Name="OUT_POR" Section="Output" Type="Real" />
+        <Parameter Name="OUT_ANA" Section="Output" Type="Real" />
+      </CallInfo>
+    </Call>
+    <Call UId="39">
+      <CallInfo Name="BL_ANALOGICA" BlockType="FB">
+        <Instance Scope="LocalVariable" UId="40">
+          <Component Name="BL_ANALOGICA_3" />
+        </Instance>
+        <Parameter Name="IN MIN" Section="Input" Type="Real" />
+        <Parameter Name="IN MAX" Section="Input" Type="Real" />
+        <Parameter Name="IN ENTRADA" Section="Input" Type="Real" />
+        <Parameter Name="OUT MIN" Section="Input" Type="Real" />
+        <Parameter Name="OUT MAX" Section="Input" Type="Real" />
+        <Parameter Name="OUT VALOR" Section="Output" Type="Real" />
+        <Parameter Name="OUT_POR" Section="Output" Type="Real" />
+        <Parameter Name="OUT_ANA" Section="Output" Type="Real" />
+      </CallInfo>
+    </Call>
+  </Parts>
+  <Wires>
+    <Wire UId="51">
+      <Powerrail />
+      <NameCon UId="35" Name="en" />
+      <NameCon UId="37" Name="en" />
+      <NameCon UId="39" Name="en" />
+    </Wire>
+    <Wire UId="52">
+      <IdentCon UId="21" />
+      <NameCon UId="35" Name="IN MIN" />
+    </Wire>
+    <Wire UId="53">
+      <IdentCon UId="22" />
+      <NameCon UId="35" Name="IN MAX" />
+    </Wire>
+    <Wire UId="54">
+      <IdentCon UId="23" />
+      <NameCon UId="35" Name="IN ENTRADA" />
+    </Wire>
+    <Wire UId="55">
+      <IdentCon UId="24" />
+      <NameCon UId="35" Name="OUT MIN" />
+    </Wire>
+    <Wire UId="56">
+      <IdentCon UId="25" />
+      <NameCon UId="35" Name="OUT MAX" />
+    </Wire>
+    <Wire UId="57">
+      <NameCon UId="35" Name="OUT VALOR" />
+      <IdentCon UId="26" />
+    </Wire>
+    <Wire UId="58">
+      <NameCon UId="35" Name="OUT_POR" />
+      <OpenCon UId="41" />
+    </Wire>
+    <Wire UId="59">
+      <NameCon UId="35" Name="OUT_ANA" />
+      <OpenCon UId="42" />
+    </Wire>
+    <Wire UId="60">
+      <OpenCon UId="43" />
+      <NameCon UId="37" Name="IN MIN" />
+    </Wire>
+    <Wire UId="61">
+      <IdentCon UId="27" />
+      <NameCon UId="37" Name="IN MAX" />
+    </Wire>
+    <Wire UId="62">
+      <IdentCon UId="28" />
+      <NameCon UId="37" Name="IN ENTRADA" />
+    </Wire>
+    <Wire UId="63">
+      <OpenCon UId="44" />
+      <NameCon UId="37" Name="OUT MIN" />
+    </Wire>
+    <Wire UId="64">
+      <IdentCon UId="29" />
+      <NameCon UId="37" Name="OUT MAX" />
+    </Wire>
+    <Wire UId="65">
+      <NameCon UId="37" Name="OUT VALOR" />
+      <IdentCon UId="30" />
+    </Wire>
+    <Wire UId="66">
+      <NameCon UId="37" Name="OUT_POR" />
+      <OpenCon UId="45" />
+    </Wire>
+    <Wire UId="67">
+      <NameCon UId="37" Name="OUT_ANA" />
+      <OpenCon UId="46" />
+    </Wire>
+    <Wire UId="68">
+      <OpenCon UId="47" />
+      <NameCon UId="39" Name="IN MIN" />
+    </Wire>
+    <Wire UId="69">
+      <IdentCon UId="31" />
+      <NameCon UId="39" Name="IN MAX" />
+    </Wire>
+    <Wire UId="70">
+      <IdentCon UId="32" />
+      <NameCon UId="39" Name="IN ENTRADA" />
+    </Wire>
+    <Wire UId="71">
+      <OpenCon UId="48" />
+      <NameCon UId="39" Name="OUT MIN" />
+    </Wire>
+    <Wire UId="72">
+      <IdentCon UId="33" />
+      <NameCon UId="39" Name="OUT MAX" />
+    </Wire>
+    <Wire UId="73">
+      <NameCon UId="39" Name="OUT VALOR" />
+      <IdentCon UId="34" />
+    </Wire>
+    <Wire UId="74">
+      <NameCon UId="39" Name="OUT_POR" />
+      <OpenCon UId="49" />
+    </Wire>
+    <Wire UId="75">
+      <NameCon UId="39" Name="OUT_ANA" />
+      <OpenCon UId="50" />
+    </Wire>
+  </Wires>
+</FlgNet></NetworkSource>
+          <ProgrammingLanguage>LAD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="6" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="7" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="8" CompositionName="Items">
+                <AttributeList>
+                  <Culture>es-ES</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="9" CompositionName="Items">
+                <AttributeList>
+                  <Culture>pt-BR</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="A" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="C" CompositionName="Items">
+                <AttributeList>
+                  <Culture>es-ES</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>pt-BR</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <MultilingualText ID="E" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="F" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="10" CompositionName="Items">
+            <AttributeList>
+              <Culture>es-ES</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="11" CompositionName="Items">
+            <AttributeList>
+              <Culture>pt-BR</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.FB>
+</Document>

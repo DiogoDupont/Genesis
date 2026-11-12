@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<defs>
+  <linearGradient id="gG" x1="0.1" y1="0" x2="0.9" y2="1">
+    <stop offset="0" stop-color="#9BEBFF"/><stop offset="0.45" stop-color="#3DB8FF"/><stop offset="1" stop-color="#1673F5"/>
+  </linearGradient>
+  <linearGradient id="gBg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#113457"/><stop offset="0.55" stop-color="#0A2038"/><stop offset="1" stop-color="#061321"/>
+  </linearGradient>
+  <radialGradient id="gHalo" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#2FA8FF" stop-opacity="0.55"/><stop offset="0.6" stop-color="#1683FF" stop-opacity="0.12"/><stop offset="1" stop-color="#1683FF" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="gSpark" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#FFFFFF"/><stop offset="0.6" stop-color="#DFF6FF"/><stop offset="1" stop-color="#9BE4FF"/>
+  </radialGradient>
+  <linearGradient id="gTxt" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#F4FBFF"/><stop offset="1" stop-color="#A9DCFF"/>
+  </linearGradient>
+  <filter id="fGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter>
+  <filter id="fGlowS" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
+  <filter id="fGlowT" x="-20%" y="-60%" width="140%" height="220%"><feGaussianBlur stdDeviation="9"/></filter>
+</defs>
+<circle cx="256" cy="256" r="250" fill="url(#gHalo)" opacity="0.45"/>
+<path d="M 384.70 148.01 A 168 168 0 1 0 424.00 256.00 L 259.36 256.00" fill="none" stroke="#1E8FFF" stroke-width="62.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.55" filter="url(#fGlow)"/>
+<path d="M 384.70 148.01 A 168 168 0 1 0 424.00 256.00 L 259.36 256.00" fill="none" stroke="url(#gG)" stroke-width="50" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="152.57" cy="123.61" r="11.00" fill="#061321" opacity="0.9"/>
+<circle cx="152.57" cy="388.39" r="11.00" fill="#061321" opacity="0.9"/>
+<circle cx="256" cy="256" r="98.8" fill="url(#gHalo)"/>
+<path d="M 256.00 204.00 Q 261.88 250.12 308.00 256.00 Q 261.88 261.88 256.00 308.00 Q 250.12 261.88 204.00 256.00 Q 250.12 250.12 256.00 204.00 Z" fill="#7FD8FF" opacity="0.9" filter="url(#fGlowS)"/>
+<path d="M 256.00 204.00 Q 261.88 250.12 308.00 256.00 Q 261.88 261.88 256.00 308.00 Q 250.12 261.88 204.00 256.00 Q 250.12 250.12 256.00 204.00 Z" fill="url(#gSpark)"/>
+</svg>

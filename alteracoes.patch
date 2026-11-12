@@ -1,0 +1,198 @@
+--- gen_stage2/Modelo.cs	2026-11-11 12:54:52.467597922 +0000
++++ f3/g/Genesis/Modelo.cs	2026-11-11 12:56:23.981110971 +0000
+@@ -456,10 +456,16 @@
+         public static string PadraoHabBomba1 = "HAB_BOMBA_1_{SUB}_{EQ}_{FN}";
+         public static string PadraoHabBomba2 = "HAB_BOMBA_2_{SUB}_{EQ}_{FN}";
+         public static string PadraoDef = "DEF_{DESC}";
+-        public static string PadraoMedidor = "MEDIDOR_{SUB}_{EQ}_{FN}";
+-        public static string PadraoTotalizador = "TOTALIZADOR_VAZAO_{SUB}_{EQ}_{FN}";
+-        public static string PadraoChave = "CHAVE_{SUB}_{EQ}_{FN}";
+-        public static string PadraoChaveMovimento = "CHAVE_MOVIMENTO_{SUB}_{EQ}_{FN}";
++        // Sensores: nome completo, com a descricao do item (como nas partidas). Os padroes antigos (abreviados, com DB_GRUPO_NOME)
++        // ficam em Legado*: servem para trocar a configuracao salva e as tags automaticas de projetos antigos.
++        public static string PadraoMedidor = "MEDIDOR_{DESC}";
++        public static string PadraoTotalizador = "TOTALIZADOR_{DESC}";
++        public static string PadraoChave = "CHAVE_{DESC}";
++        public static string PadraoChaveMovimento = "CHAVE_MOVIMENTO_{DESC}";
++        public const string LegadoMedidor = "MEDIDOR_{SUB}_{EQ}_{FN}";
++        public const string LegadoTotalizador = "TOTALIZADOR_VAZAO_{SUB}_{EQ}_{FN}";
++        public const string LegadoChave = "CHAVE_{SUB}_{EQ}_{FN}";
++        public const string LegadoChaveMovimento = "CHAVE_MOVIMENTO_{SUB}_{EQ}_{FN}";
+ 
+         /// <summary>Último arquivo de projeto usado (para a sessão restaurada continuar salvando nele).</summary>
+         public static string UltimoArquivo = "";
+@@ -546,10 +552,11 @@
+                     else if (chave == "PadraoHabBomba1") PadraoHabBomba1 = valor;
+                     else if (chave == "PadraoHabBomba2") PadraoHabBomba2 = valor;
+                     else if (chave == "PadraoDef") PadraoDef = valor;
+-                    else if (chave == "PadraoMedidor") PadraoMedidor = valor;
+-                    else if (chave == "PadraoTotalizador") PadraoTotalizador = valor;
+-                    else if (chave == "PadraoChave") PadraoChave = valor;
+-                    else if (chave == "PadraoChaveMovimento") PadraoChaveMovimento = valor;
++                    // configuracao salva com o padrao antigo (abreviado) passa para o novo; padrao que voce mudou fica como esta
++                    else if (chave == "PadraoMedidor") PadraoMedidor = valor == LegadoMedidor ? "MEDIDOR_{DESC}" : valor;
++                    else if (chave == "PadraoTotalizador") PadraoTotalizador = valor == LegadoTotalizador ? "TOTALIZADOR_{DESC}" : valor;
++                    else if (chave == "PadraoChave") PadraoChave = valor == LegadoChave ? "CHAVE_{DESC}" : valor;
++                    else if (chave == "PadraoChaveMovimento") PadraoChaveMovimento = valor == LegadoChaveMovimento ? "CHAVE_MOVIMENTO_{DESC}" : valor;
+                     else if (chave == "UltimoArquivo") UltimoArquivo = valor;
+                 }
+             }
+--- gen_stage2/MainForm.cs	2026-11-11 12:54:52.468029857 +0000
++++ f3/g/Genesis/MainForm.cs	2026-11-11 12:56:23.985397062 +0000
+@@ -1322,7 +1322,17 @@
+             return LimparNomeTag(valor);
+         }
+ 
+-        private static Dictionary<string, string> NomesAutomaticosIo(Partida p)
++        /// <summary>Tira palavras repetidas em sequencia (MEDIDOR_MEDIDOR_VAZAO vira MEDIDOR_VAZAO).</summary>
++        private static string ColapsarRepetidas(string nome)
++        {
++            var saida = new List<string>();
++            foreach (string t in (nome ?? "").Split('_'))
++                if (t.Length > 0 && (saida.Count == 0 || saida[saida.Count - 1] != t)) saida.Add(t);
++            return string.Join("_", saida.ToArray());
++        }
++
++        /// <param name="legado">true = nomes como eram antes (abreviados): serve para reconhecer tags automaticas antigas.</param>
++        private static Dictionary<string, string> NomesAutomaticosIo(Partida p, bool legado = false)
+         {
+             var nomes = new Dictionary<string, string>();
+             if (p == null || !NomeCompleto(p)) return nomes;
+@@ -1332,19 +1342,35 @@
+ 
+             if (Gerador.EhSensor(p))
+             {
++                // sensores: nome completo (descricao), sem palavras repetidas; "legado" = o jeito antigo, so para reconhecer tags antigas
++                Func<string, string, string> sen = (prop, modelo) =>
++                {
++                    string n = MontarPadraoIo(modelo, p);
++                    return legado ? n : ColapsarRepetidas(n);
++                };
++                string pMov = legado ? Cfg.LegadoChaveMovimento : Cfg.PadraoChaveMovimento;
++                string pMed = legado ? Cfg.LegadoMedidor : Cfg.PadraoMedidor;
++                string pTot = legado ? Cfg.LegadoTotalizador : Cfg.PadraoTotalizador;
++                string pChave = legado ? Cfg.LegadoChave : Cfg.PadraoChave;
+                 if (t.SenRaspador)
+                 {
+-                    nomes["TagSensor"] = add("TagSensor", Cfg.PadraoChaveMovimento);
+-                    nomes["TagSensor2"] = add("TagSensor2", Cfg.PadraoChaveMovimento) + "_2";
++                    nomes["TagSensor"] = sen("TagSensor", pMov);
++                    nomes["TagSensor2"] = sen("TagSensor2", pMov) + "_2";
+                     nomes["TagConf"] = add("TagConf", Cfg.PadraoConf);
+                 }
+                 else if (t.SenVazao || t.SenAna)
+                 {
+-                    nomes["TagSensor"] = add("TagSensor", Cfg.PadraoMedidor);
+-                    if (t.SenVazao && !Maquinas.EhPreparador(p)) nomes["TagPulso"] = add("TagPulso", Cfg.PadraoTotalizador);
++                    nomes["TagSensor"] = sen("TagSensor", pMed);
++                    if (t.SenVazao && !Maquinas.EhPreparador(p)) nomes["TagPulso"] = sen("TagPulso", pTot);
+                 }
+                 else if (!t.SenAna && !t.SenVazao && !t.SenRaspador)
+-                    nomes["TagSensor"] = add("TagSensor", Cfg.PadraoChave) + (t.SenAlto ? "_ALTO" : "_BAIXO");
++                {
++                    string chave = sen("TagSensor", pChave);
++                    string palavra = t.SenAlto ? "ALTO" : "BAIXO";
++                    // a descricao ja diz "nivel baixo/alto": nao repete o sufixo
++                    bool jaDiz = !legado && ("_" + chave + "_").Contains("_" + palavra + "_");
++                    nomes["TagSensor"] = jaDiz ? chave : chave + "_" + palavra;
++                }
+                 return nomes;
+             }
+ 
+@@ -1375,6 +1401,79 @@
+             return nomes;
+         }
+ 
++        /// <summary>Tags de sensores que ainda estao com o nome automatico antigo (abreviado): (linha, campo, nome antigo, nome novo).</summary>
++        private List<Tuple<Partida, string, string, string>> NomesAntigosDeSensores()
++        {
++            var lista = new List<Tuple<Partida, string, string, string>>();
++            foreach (Partida p in _sensores)
++            {
++                Dictionary<string, string> leg = NomesAutomaticosIo(p, true), novo = NomesAutomaticosIo(p, false);
++                foreach (var par in novo)
++                {
++                    string velho;
++                    if (!leg.TryGetValue(par.Key, out velho) || velho == par.Value) continue;
++                    PropertyInfo pi = typeof(Partida).GetProperty(par.Key);
++                    if (pi == null) continue;
++                    string atual = Convert.ToString(pi.GetValue(p, null) ?? "");
++                    if (string.Equals(atual, velho, StringComparison.OrdinalIgnoreCase))
++                        lista.Add(Tuple.Create(p, par.Key, atual, par.Value));
++                }
++            }
++            return lista;
++        }
++
++        /// <summary>Troca as tags automaticas antigas dos sensores pelo nome completo (a tag da aba Tags tambem muda; endereco e descricao ficam).</summary>
++        private int AtualizarNomesDeSensores(List<Tuple<Partida, string, string, string>> trocas)
++        {
++            int n = 0;
++            _carregando = true;
++            try
++            {
++                foreach (var t in trocas)
++                {
++                    PropertyInfo pi = typeof(Partida).GetProperty(t.Item2);
++                    Io io = _ios.FirstOrDefault(x => string.Equals(x.Nome, t.Item3, StringComparison.OrdinalIgnoreCase));
++                    if (io != null && !_ios.Any(x => string.Equals(x.Nome, t.Item4, StringComparison.OrdinalIgnoreCase))) io.Nome = t.Item4;
++                    pi.SetValue(t.Item1, t.Item4, null);
++                    n++;
++                }
++            }
++            finally
++            {
++                _carregando = false;
++            }
++            ReligarTags();
++            foreach (Cadastro c in new[] { _cadPart, _cadSen, _cadPid }) MontarEditor(c, true);
++            AoMudarDados();
++            AtualizarMaquinas();
++            return n;
++        }
++
++        /// <summary>Ao abrir um projeto com sensores no nome abreviado antigo, oferece trocar pelo nome completo.</summary>
++        private void OferecerNomesCompletosDeSensores()
++        {
++            Action oferta = delegate
++            {
++                var trocas = NomesAntigosDeSensores();
++                if (trocas.Count == 0) return;
++                int sensores = trocas.Select(x => x.Item1).Distinct().Count();
++                if (!_confirmar("Os nomes automáticos das tags dos sensores agora são completos (com a descrição do item, como nas partidas).\n\n"
++                    + "Este projeto tem " + trocas.Count + " tag(s) de " + sensores + " sensor(es) com o nome abreviado antigo. Trocar agora?\n\n"
++                    + "Endereços e descrições das tags são mantidos. As tags antigas que já foram geradas no TIA continuam lá; a próxima geração cria as novas.")) return;
++                int n = AtualizarNomesDeSensores(trocas);
++                Log("Tags dos sensores atualizadas para o nome completo: " + n + ".");
++                _modificado = true;
++                AtualizarTitulo();
++            };
++            if (IsHandleCreated && Visible) BeginInvoke(oferta);
++            else
++            {
++                EventHandler uma = null;
++                uma = delegate { Shown -= uma; BeginInvoke(oferta); };
++                Shown += uma;
++            }
++        }
++
+         private static void PreencherAutomaticos(Partida p)
+         {
+             if (p == null || !NomeCompleto(p)) return;
+@@ -2643,7 +2742,7 @@
+             add("Bypass — bomba 1", _txtPadraoHabBomba1, "Habilitação do contator/bomba 1 no bypass.", false);
+             add("Bypass — bomba 2", _txtPadraoHabBomba2, "Habilitação do contator/bomba 2 no bypass.", false);
+             add("Defeito", _txtPadraoDef, "Entrada de defeito do inversor/soft-starter.", false);
+-            add("Medidor", _txtPadraoMedidor, "Entrada analógica de medidores de vazão, pH, nível etc.", false);
++            add("Medidor", _txtPadraoMedidor, "Entrada analógica de medidores de vazão, pH, nível etc. Padrão: MEDIDOR_{DESC} (nome completo, como nas partidas).", false);
+             add("Totalizador", _txtPadraoTotalizador, "Entrada de pulso do totalizador de vazão.", false);
+             add("Chave", _txtPadraoChave, "Chaves digitais, como nível alto/baixo.", false);
+             add("Movimento", _txtPadraoChaveMovimento, "Sensores de movimento das pás do flotador/raspador.", false);
+@@ -2886,6 +2985,7 @@
+             AtualizarContadoresAgora();
+             _modificado = false;
+             AtualizarTitulo();
++            if (_sensores.Count > 0 && NomesAntigosDeSensores().Count > 0) OferecerNomesCompletosDeSensores();
+         }
+ 
+         /// <summary>Avisa a grade das tags de que a lista mudou inteira.</summary>

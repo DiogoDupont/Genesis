@@ -1,0 +1,934 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V20" />
+  <DocumentInfo>
+    <Created>2026-10-20T17:54:29.1200932Z</Created>
+    <ExportSetting>WithDefaults</ExportSetting>
+    <InstalledProducts>
+      <Product>
+        <DisplayName>Totally Integrated Automation Portal</DisplayName>
+        <DisplayVersion>V20 Update 3</DisplayVersion>
+      </Product>
+      <OptionPackage>
+        <DisplayName>TIA Portal Openness</DisplayName>
+        <DisplayVersion>V20 Update 3</DisplayVersion>
+      </OptionPackage>
+      <OptionPackage>
+        <DisplayName>TIA Portal Version Control Interface</DisplayName>
+        <DisplayVersion>V20 Update 3</DisplayVersion>
+      </OptionPackage>
+      <Product>
+        <DisplayName>SINAMICS Startdrive Advanced</DisplayName>
+        <DisplayVersion>V20 SP1</DisplayVersion>
+      </Product>
+      <OptionPackage>
+        <DisplayName>SINAMICS Startdrive G130, G150, S120, S150, SINAMICS MV, G220, S200, S210</DisplayName>
+        <DisplayVersion>V20 SP1</DisplayVersion>
+      </OptionPackage>
+      <OptionPackage>
+        <DisplayName>SINAMICS Startdrive G110M, G120, G120C, G120D, G120P, G115D</DisplayName>
+        <DisplayVersion>V20 SP1</DisplayVersion>
+      </OptionPackage>
+      <Product>
+        <DisplayName>STEP 7 Professional</DisplayName>
+        <DisplayVersion>V20 Update 3</DisplayVersion>
+      </Product>
+      <OptionPackage>
+        <DisplayName>STEP 7 Safety</DisplayName>
+        <DisplayVersion>V20 Update 2</DisplayVersion>
+      </OptionPackage>
+      <Product>
+        <DisplayName>WinCC Basic/Comfort/Advanced</DisplayName>
+        <DisplayVersion>V20 Update 3</DisplayVersion>
+      </Product>
+      <Product>
+        <DisplayName>WinCC Professional</DisplayName>
+        <DisplayVersion>V20 Update 3</DisplayVersion>
+      </Product>
+      <Product>
+        <DisplayName>WinCC Unified</DisplayName>
+        <DisplayVersion>V20 Update 3</DisplayVersion>
+      </Product>
+    </InstalledProducts>
+  </DocumentInfo>
+  <SW.Blocks.InstanceDB ID="0">
+    <AttributeList>
+      <AutoNumber>true</AutoNumber>
+      <DBAccessibleFromOPCUA>true</DBAccessibleFromOPCUA>
+      <DBAccessibleFromWebserver>true</DBAccessibleFromWebserver>
+      <HeaderAuthor />
+      <HeaderFamily />
+      <HeaderName />
+      <HeaderVersion>0.1</HeaderVersion>
+      <InstanceOfName>BL_INVERSOR_6</InstanceOfName>
+      <InstanceOfType>FB</InstanceOfType>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="INV_SET_END" Datatype="HW_SUBMODULE" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>265</StartValue>
+    </Member>
+    <Member Name="SIS_LEI_EME" Datatype="Bool" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>FALSE</StartValue>
+    </Member>
+    <Member Name="SIS_CMD_AUT" Datatype="Bool" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>FALSE</StartValue>
+    </Member>
+    <Member Name="SIS_CMD_RST" Datatype="Bool" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>FALSE</StartValue>
+    </Member>
+    <Member Name="SIS_LEI_VAZ" Datatype="Int" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>100</StartValue>
+    </Member>
+    <Member Name="SIS_CMD_CLP" Datatype="Bool" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>FALSE</StartValue>
+    </Member>
+    <Member Name="MOT_CMD_LIG" Datatype="Bool" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>FALSE</StartValue>
+    </Member>
+    <Member Name="MOT_CMD_INT" Datatype="Bool" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>FALSE</StartValue>
+    </Member>
+    <Member Name="MOT_CMD_MA1" Datatype="Bool" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>FALSE</StartValue>
+    </Member>
+    <Member Name="MOT_CMD_MA2" Datatype="Bool" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>FALSE</StartValue>
+    </Member>
+    <Member Name="MOT_CMD_RH1" Datatype="Bool" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>FALSE</StartValue>
+    </Member>
+    <Member Name="MOT_CMD_RH2" Datatype="Bool" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>FALSE</StartValue>
+    </Member>
+    <Member Name="MOT_CMD_SEL" Datatype="Bool" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>FALSE</StartValue>
+    </Member>
+    <Member Name="MOT_CMD_REV" Datatype="Bool" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>FALSE</StartValue>
+    </Member>
+    <Member Name="MOT_SET_VEL" Datatype="Real" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>100.0</StartValue>
+    </Member>
+    <Member Name="MOT_SET_VMI" Datatype="Real" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>0.0</StartValue>
+    </Member>
+    <Member Name="MOT_SET_ANA" Datatype="Int" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>100</StartValue>
+    </Member>
+    <Member Name="MOT_SET_FES" Datatype="Real" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>52.0</StartValue>
+    </Member>
+    <Member Name="MOT_LEI_CN1" Datatype="Bool" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>FALSE</StartValue>
+    </Member>
+    <Member Name="MOT_LEI_CN2" Datatype="Bool" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>FALSE</StartValue>
+    </Member>
+  </Section>
+  <Section Name="Output">
+    <Member Name="MOT_LEI_RUN" Datatype="Bool" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>FALSE</StartValue>
+    </Member>
+    <Member Name="MOT_LEI_FRP" Datatype="Bool" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>FALSE</StartValue>
+    </Member>
+    <Member Name="MOT_LEI_DEF" Datatype="Bool" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>FALSE</StartValue>
+    </Member>
+    <Member Name="MOT_LEI_HA1" Datatype="Bool" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>TRUE</StartValue>
+    </Member>
+    <Member Name="MOT_LEI_HA2" Datatype="Bool" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>FALSE</StartValue>
+    </Member>
+    <Member Name="MOT_LEI_ST1" Datatype="Int" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>0</StartValue>
+    </Member>
+    <Member Name="MOT_LEI_ST2" Datatype="Int" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>0</StartValue>
+    </Member>
+    <Member Name="MOT_LEI_VEL" Datatype="Int" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>0</StartValue>
+    </Member>
+    <Member Name="MOT_LEI_COR" Datatype="Real" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>0.0</StartValue>
+    </Member>
+    <Member Name="MOT_LEI_CSM" Datatype="Int" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>0</StartValue>
+    </Member>
+    <Member Name="MOT_LEI_ALA" Datatype="DInt" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>0</StartValue>
+    </Member>
+    <Member Name="MOT_LEI_FAL" Datatype="DInt" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>68</StartValue>
+    </Member>
+    <Member Name="MOT_LEI_HO1" Datatype="DInt" Remanence="Retain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>0</StartValue>
+    </Member>
+    <Member Name="MOT_LEI_HO2" Datatype="DInt" Remanence="Retain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>0</StartValue>
+    </Member>
+  </Section>
+  <Section Name="InOut" />
+  <Section Name="Static">
+    <Member Name="Static_1" Datatype="TON_TIME" Version="1.0" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <Sections>
+        <Section Name="None">
+          <Member Name="PT" Datatype="Time">
+            <StartValue>T#0MS</StartValue>
+          </Member>
+          <Member Name="ET" Datatype="Time" />
+          <Member Name="IN" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Q" Datatype="Bool" />
+        </Section>
+      </Sections>
+    </Member>
+    <Member Name="TON FALHA" Datatype="TON_TIME" Version="1.0" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <Sections>
+        <Section Name="None">
+          <Member Name="PT" Datatype="Time">
+            <StartValue>T#0MS</StartValue>
+          </Member>
+          <Member Name="ET" Datatype="Time" />
+          <Member Name="IN" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Q" Datatype="Bool" />
+        </Section>
+      </Sections>
+    </Member>
+    <Member Name="TON HORAS" Datatype="CTU_INT" Version="1.0" Remanence="Retain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <Sections>
+        <Section Name="None">
+          <Member Name="CU" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="CD" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="R" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="LD" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="QU" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="QD" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="PV" Datatype="Int">
+            <StartValue>3600</StartValue>
+          </Member>
+          <Member Name="CV" Datatype="Int">
+            <StartValue>38</StartValue>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+    <Member Name="HORAS" Datatype="CTU_UDINT" Version="1.0" Remanence="Retain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <Sections>
+        <Section Name="None">
+          <Member Name="CU" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="CD" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="R" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="LD" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="QU" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="QD" Datatype="Bool">
+            <StartValue>TRUE</StartValue>
+          </Member>
+          <Member Name="PV" Datatype="UDInt">
+            <StartValue>99999</StartValue>
+          </Member>
+          <Member Name="CV" Datatype="UDInt">
+            <StartValue>0</StartValue>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+    <Member Name="BL_ANALOGICA_1" Datatype="&quot;BL_ANALOGICA&quot;" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <Sections>
+        <Section Name="Input">
+          <Member Name="IN MIN" Datatype="Real">
+            <StartValue>0.0</StartValue>
+          </Member>
+          <Member Name="IN MAX" Datatype="Real">
+            <StartValue>16383.0</StartValue>
+          </Member>
+          <Member Name="IN ENTRADA" Datatype="Real">
+            <StartValue>0.0</StartValue>
+          </Member>
+          <Member Name="OUT MIN" Datatype="Real">
+            <StartValue>0.0</StartValue>
+          </Member>
+          <Member Name="OUT MAX" Datatype="Real">
+            <StartValue>100.0</StartValue>
+          </Member>
+        </Section>
+        <Section Name="Output">
+          <Member Name="OUT VALOR" Datatype="Real">
+            <StartValue>0.0</StartValue>
+          </Member>
+          <Member Name="OUT_POR" Datatype="Real">
+            <StartValue>0.0</StartValue>
+          </Member>
+          <Member Name="OUT_ANA" Datatype="Real">
+            <StartValue>0.0</StartValue>
+          </Member>
+        </Section>
+        <Section Name="InOut" />
+        <Section Name="Static">
+          <Member Name="AUX" Datatype="Real">
+            <StartValue>0.0</StartValue>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+    <Member Name="BL_ANALOGICA_2" Datatype="&quot;BL_ANALOGICA&quot;" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <Sections>
+        <Section Name="Input">
+          <Member Name="IN MIN" Datatype="Real">
+            <StartValue>0.0</StartValue>
+          </Member>
+          <Member Name="IN MAX" Datatype="Real">
+            <StartValue>52.0</StartValue>
+          </Member>
+          <Member Name="IN ENTRADA" Datatype="Real">
+            <StartValue>0.0</StartValue>
+          </Member>
+          <Member Name="OUT MIN" Datatype="Real">
+            <StartValue>0.0</StartValue>
+          </Member>
+          <Member Name="OUT MAX" Datatype="Real">
+            <StartValue>100.0</StartValue>
+          </Member>
+        </Section>
+        <Section Name="Output">
+          <Member Name="OUT VALOR" Datatype="Real">
+            <StartValue>0.0</StartValue>
+          </Member>
+          <Member Name="OUT_POR" Datatype="Real">
+            <StartValue>0.0</StartValue>
+          </Member>
+          <Member Name="OUT_ANA" Datatype="Real">
+            <StartValue>0.0</StartValue>
+          </Member>
+        </Section>
+        <Section Name="InOut" />
+        <Section Name="Static">
+          <Member Name="AUX" Datatype="Real">
+            <StartValue>0.0</StartValue>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+    <Member Name="TON HORAS 2" Datatype="CTU_INT" Version="1.0" Remanence="Retain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <Sections>
+        <Section Name="None">
+          <Member Name="CU" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="CD" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="R" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="LD" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="QU" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="QD" Datatype="Bool">
+            <StartValue>TRUE</StartValue>
+          </Member>
+          <Member Name="PV" Datatype="Int">
+            <StartValue>3600</StartValue>
+          </Member>
+          <Member Name="CV" Datatype="Int">
+            <StartValue>0</StartValue>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+    <Member Name="HORAS 2" Datatype="CTU_UDINT" Version="1.0" Remanence="Retain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <Sections>
+        <Section Name="None">
+          <Member Name="CU" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="CD" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="R" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="LD" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="QU" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="QD" Datatype="Bool">
+            <StartValue>TRUE</StartValue>
+          </Member>
+          <Member Name="PV" Datatype="UDInt">
+            <StartValue>99999</StartValue>
+          </Member>
+          <Member Name="CV" Datatype="UDInt">
+            <StartValue>0</StartValue>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+    <Member Name="MOT_SAI_LIG_AUX" Datatype="Bool" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <StartValue>FALSE</StartValue>
+    </Member>
+    <Member Name="SET_ANA_AUX" Datatype="Int" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <StartValue>16383</StartValue>
+    </Member>
+    <Member Name="MOT_LIG_AUX" Datatype="Bool" Remanence="NonRetain" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <StartValue>FALSE</StartValue>
+    </Member>
+    <Member Name="BL_ANALOGICA_3" Datatype="&quot;BL_ANALOGICA&quot;" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <Sections>
+        <Section Name="Input">
+          <Member Name="IN MIN" Datatype="Real">
+            <StartValue>0.0</StartValue>
+          </Member>
+          <Member Name="IN MAX" Datatype="Real">
+            <StartValue>100.0</StartValue>
+          </Member>
+          <Member Name="IN ENTRADA" Datatype="Real">
+            <StartValue>100.0</StartValue>
+          </Member>
+          <Member Name="OUT MIN" Datatype="Real">
+            <StartValue>0.0</StartValue>
+          </Member>
+          <Member Name="OUT MAX" Datatype="Real">
+            <StartValue>16384.0</StartValue>
+          </Member>
+        </Section>
+        <Section Name="Output">
+          <Member Name="OUT VALOR" Datatype="Real">
+            <StartValue>16384.0</StartValue>
+          </Member>
+          <Member Name="OUT_POR" Datatype="Real">
+            <StartValue>100.0</StartValue>
+          </Member>
+          <Member Name="OUT_ANA" Datatype="Real">
+            <StartValue>100.0</StartValue>
+          </Member>
+        </Section>
+        <Section Name="InOut" />
+        <Section Name="Static">
+          <Member Name="AUX" Datatype="Real">
+            <StartValue>1.0</StartValue>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+    <Member Name="BL_ANALOGICA_4" Datatype="&quot;BL_ANALOGICA&quot;" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <Sections>
+        <Section Name="Input">
+          <Member Name="IN MIN" Datatype="Real">
+            <StartValue>0.0</StartValue>
+          </Member>
+          <Member Name="IN MAX" Datatype="Real">
+            <StartValue>100.0</StartValue>
+          </Member>
+          <Member Name="IN ENTRADA" Datatype="Real">
+            <StartValue>100.0</StartValue>
+          </Member>
+          <Member Name="OUT MIN" Datatype="Real">
+            <StartValue>0.0</StartValue>
+          </Member>
+          <Member Name="OUT MAX" Datatype="Real">
+            <StartValue>16383.0</StartValue>
+          </Member>
+        </Section>
+        <Section Name="Output">
+          <Member Name="OUT VALOR" Datatype="Real">
+            <StartValue>16383.0</StartValue>
+          </Member>
+          <Member Name="OUT_POR" Datatype="Real">
+            <StartValue>100.0</StartValue>
+          </Member>
+          <Member Name="OUT_ANA" Datatype="Real">
+            <StartValue>100.0</StartValue>
+          </Member>
+        </Section>
+        <Section Name="InOut" />
+        <Section Name="Static">
+          <Member Name="AUX" Datatype="Real">
+            <StartValue>1.0</StartValue>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+    <Member Name="BL_REGULAGEM_SAIDA_1" Datatype="&quot;BL_REGULAGEM_SAÍDA%_1&quot;" Accessibility="Public">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">true</BooleanAttribute>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <Sections>
+        <Section Name="Input">
+          <Member Name="SIS_LEI_VAZ" Datatype="Real">
+            <StartValue>0.0</StartValue>
+          </Member>
+          <Member Name="MOT_SET_VEL" Datatype="Real">
+            <StartValue>0.0</StartValue>
+          </Member>
+          <Member Name="MOT_SET_VAZ" Datatype="Real">
+            <StartValue>0.0</StartValue>
+          </Member>
+        </Section>
+        <Section Name="Output">
+          <Member Name="MOT_LEI_VAZ" Datatype="Real">
+            <StartValue>0.0</StartValue>
+          </Member>
+          <Member Name="MOT_SET_POR" Datatype="Real">
+            <StartValue>0.0</StartValue>
+          </Member>
+        </Section>
+        <Section Name="InOut" />
+        <Section Name="Static">
+          <Member Name="aux" Datatype="Real">
+            <StartValue>0.0</StartValue>
+          </Member>
+          <Member Name="BL_ANALOGICA_1" Datatype="&quot;BL_ANALOGICA&quot;">
+            <Sections>
+              <Section Name="Input">
+                <Member Name="IN MIN" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+                <Member Name="IN MAX" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+                <Member Name="IN ENTRADA" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+                <Member Name="OUT MIN" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+                <Member Name="OUT MAX" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+              </Section>
+              <Section Name="Output">
+                <Member Name="OUT VALOR" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+                <Member Name="OUT_POR" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+                <Member Name="OUT_ANA" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+              </Section>
+              <Section Name="InOut" />
+              <Section Name="Static">
+                <Member Name="AUX" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="BL_ANALOGICA_2" Datatype="&quot;BL_ANALOGICA&quot;">
+            <Sections>
+              <Section Name="Input">
+                <Member Name="IN MIN" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+                <Member Name="IN MAX" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+                <Member Name="IN ENTRADA" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+                <Member Name="OUT MIN" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+                <Member Name="OUT MAX" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+              </Section>
+              <Section Name="Output">
+                <Member Name="OUT VALOR" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+                <Member Name="OUT_POR" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+                <Member Name="OUT_ANA" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+              </Section>
+              <Section Name="InOut" />
+              <Section Name="Static">
+                <Member Name="AUX" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="BL_ANALOGICA_3" Datatype="&quot;BL_ANALOGICA&quot;">
+            <Sections>
+              <Section Name="Input">
+                <Member Name="IN MIN" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+                <Member Name="IN MAX" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+                <Member Name="IN ENTRADA" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+                <Member Name="OUT MIN" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+                <Member Name="OUT MAX" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+              </Section>
+              <Section Name="Output">
+                <Member Name="OUT VALOR" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+                <Member Name="OUT_POR" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+                <Member Name="OUT_ANA" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+              </Section>
+              <Section Name="InOut" />
+              <Section Name="Static">
+                <Member Name="AUX" Datatype="Real">
+                  <StartValue>0.0</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+  </Section>
+</Sections></Interface>
+      <Name>BL_INVERSOR_SOPRADOR_1_AERACAO</Name>
+      <Namespace />
+      <Number>197</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>es-ES</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>pt-BR</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>es-ES</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>pt-BR</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.InstanceDB>
+</Document>
