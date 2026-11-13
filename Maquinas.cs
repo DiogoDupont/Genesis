@@ -13,7 +13,7 @@ namespace Genesis
     //  o nucleo (SIS.AUT) gera o bloco da maquina e o automatico; as partes ganham o
     //  intertravamento que vem do bloco.
     // =======================================================================
-    internal class OpcoesPreparador
+    public class OpcoesPreparador
     {
         public string Db = "PP1";
         public string Descricao = "PREPARADOR DE POLÍMERO 1";
@@ -25,7 +25,7 @@ namespace Genesis
     }
 
     /// <summary>Um quimico do flotador (bomba(s) de dosagem, agitador do tanque, nivel e modulacao).</summary>
-    internal class QuimicoFlotador
+    public class QuimicoFlotador
     {
         public string Codigo;          // ALC, FLC, COA, ANT, ACI, DES
         public string Nome;            // ALCALINIZANTE...
@@ -45,7 +45,7 @@ namespace Genesis
         public const string ModNenhuma = "Sem modulação", ModVazao = "Pela vazão", ModPid = "PID de pH";
     }
 
-    internal class OpcoesFlotador
+    public class OpcoesFlotador
     {
         public string Sub = "FL1";
         public string Descricao = "FLOTADOR PRIMÁRIO";
@@ -381,7 +381,7 @@ namespace Genesis
         /// Compara a maquina atual com as opcoes novas: o que continua (casando pelo papel), o que e novo e o que sai.
         /// Itens colocados a mao na maquina (sem papel) nao entram: ficam como estao.
         /// </summary>
-        public static PlanoPreparador PlanejarPreparador(string id, List<Partida> itens, OpcoesPreparador novas)
+        public static PlanoPreparador PlanejarPreparador(string id, IEnumerable<Partida> itens, OpcoesPreparador novas)
         {
             var plano = new PlanoPreparador { DbAntigo = id, Antigas = OpcoesDoPreparador(itens, id), Novas = novas };
             novas.Db = novas.Db.Trim().ToUpperInvariant();

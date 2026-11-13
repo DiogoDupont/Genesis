@@ -8,6 +8,8 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Genesis.Hardware;
+using Genesis.Receitas;
 
 namespace Genesis
 {
@@ -22,14 +24,15 @@ namespace Genesis
         private readonly BindingList<Partida> _partidas = new BindingList<Partida>();
         private readonly BindingList<Partida> _sensores = new BindingList<Partida>();
         private readonly BindingList<Partida> _pids = new BindingList<Partida>();
+        private Genesis.Hardware.ProjetoHardware _projetoHardware;
         private readonly BindingList<Io> _ios = new BindingList<Io>();
         private bool _carregando;
         private string _arquivoAtual;
 
         // --- tela -------------------------------------------------------------------
         private Panel _hostPaginas;
-        private Control _pagInicio, _pagPartidas, _pagSensores, _pagPids, _pagTags, _pagConfig, _pagModbus, _pagMaquinas, _pagGerar, _paginaAtual;
-        private ItemNav _navInicio, _navPart, _navSen, _navPid, _navTags, _navModbus, _navMaq, _navGerar;
+        private Control _pagInicio, _pagPartidas, _pagSensores, _pagPids, _pagTags, _pagConfig, _pagModbus, _pagMaquinas, _pagGerar, _pagHardware, _paginaAtual;
+        private ItemNav _navInicio, _navPart, _navSen, _navPid, _navTags, _navModbus, _navMaq, _navGerar, _navHardware;
         private CartaoInicio _hubTags, _hubMaq, _hubPart, _hubSen, _hubPid, _hubGerar;
         private Label _lblProjetoInicio, _lblResumoInicio, _lblStatus, _lblAlternarLog;
         private Panel _gaveta;
@@ -146,7 +149,8 @@ namespace Genesis
             _pagMaquinas = CriarPaginaMaquinas();
             _pagMaquina = CriarPaginaMaquina();
             _pagGerar = CriarPaginaGerar();
-            foreach (Control p in new[] { _pagInicio, _pagPartidas, _pagSensores, _pagPids, _pagTags, _pagConfig, _pagModbus, _pagMaquinas, _pagMaquina, _pagGerar })
+            _pagHardware = CriarPaginaHardware();
+            foreach (Control p in new[] { _pagInicio, _pagPartidas, _pagSensores, _pagPids, _pagTags, _pagConfig, _pagModbus, _pagMaquinas, _pagMaquina, _pagGerar, _pagHardware })
             {
                 p.Visible = false;
                 _hostPaginas.Controls.Add(p);
@@ -210,6 +214,7 @@ namespace Genesis
                 case "sensores": return _pagSensores;
                 case "pids": return _pagPids;
                 case "modbus": return _pagModbus;
+                case "hardware": return _pagHardware;
                 case "gerar": return _pagGerar;
                 case "config": return _pagConfig;
                 default: return null;
@@ -246,6 +251,7 @@ namespace Genesis
             _navPid = new ItemNav("PIDs", "pids");
             _navModbus = new ItemNav("Modbus", "modbus");
             _navGerar = new ItemNav("Gerar", "gerar") { Destaque = true };
+            _navHardware = new ItemNav("Hardware", "config");
             _navInicio.Click += delegate { MostrarPagina(_pagInicio); };
             _navTags.Click += delegate { MostrarPagina(_pagTags); };
             _navMaq.Click += delegate { MostrarPagina(_pagMaquinas); };
@@ -254,11 +260,12 @@ namespace Genesis
             _navPid.Click += delegate { MostrarPagina(_pagPids); };
             _navModbus.Click += delegate { MostrarPagina(_pagModbus); };
             _navGerar.Click += delegate { AbrirGerar(null); };
+            _navHardware.Click += delegate { MostrarPagina(_pagHardware); };
             _dicas.SetToolTip(_navInicio, "Início");
             _dicas.SetToolTip(_navGerar, "Conferir e gerar no TIA Portal (F5)");
 
             var nav = new FlowLayoutPanel { Location = new Point(178, 0), Height = 58, AutoSize = true, WrapContents = false, BackColor = Color.Transparent, Margin = new Padding(0) };
-            foreach (ItemNav i in new[] { _navInicio, _navTags, _navMaq, _navPart, _navSen, _navPid, _navModbus, _navGerar })
+            foreach (ItemNav i in new[] { _navInicio, _navTags, _navMaq, _navHardware, _navPart, _navSen, _navPid, _navModbus, _navGerar })
             {
                 i.Height = 58;
                 nav.Controls.Add(i);
@@ -453,6 +460,7 @@ namespace Genesis
             _navModbus.Selecionado = pagina == _pagModbus;
             _navMaq.Selecionado = pagina == _pagMaquinas || pagina == _pagMaquina;
             _navGerar.Selecionado = pagina == _pagGerar;
+            if (_navHardware != null) _navHardware.Selecionado = pagina == _pagHardware;
             // as listas principais mostram o que foi editado na pagina da maquina
             if (pagina == _pagPartidas || pagina == _pagSensores || pagina == _pagPids)
             {
@@ -3004,6 +3012,7 @@ namespace Genesis
             var p = new Projeto();
             p.Ios = _ios.Where(i => !IoVazia(i)).ToList();
             p.Partidas = _partidas.Concat(_sensores).Concat(_pids).Where(x => !PartidaVazia(x)).ToList();
+            p.Hardware = _projetoHardware;
             return p;
         }
 
@@ -3035,6 +3044,8 @@ namespace Genesis
                 _ios.RaiseListChangedEvents = true;
                 _carregando = false;
             }
+            _projetoHardware = p.Hardware;
+            if (_pagHardware != null) CarregarHardwareNaTela();
             foreach (Cadastro c in new[] { _cadPart, _cadSen, _cadPid })
             {
                 c.Busca.Text = "";
@@ -3635,14 +3646,31 @@ namespace Genesis
 
             fluxo.Controls.Add(Tema.Secao("Catálogo — clique para adicionar"));
             var catalogo = new FlowLayoutPanel { AutoSize = true, WrapContents = true, BackColor = Tema.Fundo, Margin = new Padding(0, 4, 0, 18) };
-            var cPrep = new CartaoInicio(Maquinas.Preparador,
-                "Rosca, 1 ou 2 agitadores, válvula de alimentação, medidor de vazão e nível (digital ou analógico). Bloco BL_POLIMERO_PREPARO_FLOCULANTE.", "preparador") { Situacao = "Adicionar ao projeto", Height = 186 };
-            cPrep.Click += delegate { NovaMaquina(); };
-            catalogo.Controls.Add(cPrep);
-            var cFlo = new CartaoInicio("Flotador",
-                "Subsistema completo: equalização, alimentação, microbolhas, raspador (com pás), floculador, lodo e químicos com níveis, vazão e PID de pH.", "flotador") { Situacao = "Adicionar ao projeto", Height = 186 };
-            cFlo.Click += delegate { NovoFlotador(); };
-            catalogo.Controls.Add(cFlo);
+
+            // grupo 1: máquinas
+            if (ReceitaRegistry.Maquinas.Count > 0)
+            {
+                foreach (IReceitaMaquina r in ReceitaRegistry.Maquinas)
+                {
+                    IReceitaMaquina receita = r;
+                    var cartao = new CartaoInicio(receita.NomeExibicao, receita.Descricao, receita.Icone) { Situacao = "Máquina · adicionar ao projeto", Height = 186 };
+                    cartao.Click += delegate { NovaReceita(receita); };
+                    catalogo.Controls.Add(cartao);
+                }
+            }
+
+            // grupo 2: subsistemas
+            if (ReceitaRegistry.Subsistemas.Count > 0)
+            {
+                foreach (IReceitaSubsistema r in ReceitaRegistry.Subsistemas)
+                {
+                    IReceitaSubsistema receita = r;
+                    var cartao = new CartaoInicio(receita.NomeExibicao, receita.Descricao, receita.Icone) { Situacao = "Subsistema · adicionar ao projeto", Height = 186 };
+                    cartao.Click += delegate { NovaSubsistema(receita); };
+                    catalogo.Controls.Add(cartao);
+                }
+            }
+
             var cMais = new CartaoInicio("Outras máquinas", "Mande o PDF da próxima máquina do escopo que ela entra no catálogo do mesmo jeito.", "mais") { Situacao = "Em breve", CorSituacao = Tema.TextoFraco, Height = 186, Clicavel = false };
             cMais.Cursor = Cursors.Default;
             catalogo.Controls.Add(cMais);
@@ -3860,6 +3888,16 @@ namespace Genesis
                 + (pend > 0 ? "   ·   ⚠ " + pend + " com campos a preencher" : "   ·   ✓ tudo preenchido");
             _maqResumo.ForeColor = pend > 0 ? Tema.Amarelo : Tema.Verde;
         }
+        private void NovaSubsistema(IReceitaSubsistema receita)
+        {
+            // Fase 3.2 implementa de verdade
+            Dialogo.Info(this, "Subsistemas serão suportados na próxima fase.");
+        }
+
+                
+
+    
+
 
         private void NovoItemMaquina(string categoria)
         {
@@ -4167,6 +4205,68 @@ namespace Genesis
             AtualizarMaquinas();
             Log("Máquina " + id + " removida.");
         }
+
+        // ===================================================================
+        //  Receitas: criação e reconfiguração genérica
+        //  (substitui NovaMaquina / NovoFlotador / ReconfigurarPreparador / ReconfigurarFlotador)
+        // ===================================================================
+        private ContextoReceita ContextoAtual()
+        {
+            var todas = _partidas.Concat(_sensores).Concat(_pids).Cast<Partida>().ToList();
+            return new ContextoReceita(todas, _projetoHardware);
+        }
+
+        private void NovaReceita(IReceitaMaquina receita)
+        {
+            if (receita == null) return;
+
+            object opcoesIniciais = receita.OpcoesPadrao;
+            List<PerfilReceita> perfis = PerfisReceita.Listar(receita.Id);
+            if (perfis.Count > 0)
+            {
+                using (var pf = new PerfilForm(receita.NomeExibicao, perfis))
+                {
+                    if (pf.ShowDialog(this) != DialogResult.OK) return;
+                    if (pf.Escolhido != null)
+                    {
+                        try
+                        {
+                            Type tipo = receita.OpcoesPadrao.GetType();
+                            opcoesIniciais = PerfisReceita.Desserializar(pf.Escolhido.OpcoesXml, tipo) ?? receita.OpcoesPadrao;
+                        }
+                        catch { opcoesIniciais = receita.OpcoesPadrao; }
+                    }
+                }
+            }
+
+            ContextoReceita ctx = ContextoAtual();
+            string sugestao = receita.SugerirId(ctx);
+            using (Form form = receita.CriarForm(sugestao, ctx, ctx.IdEmUso, opcoesIniciais))
+            {
+                if (form.ShowDialog(this) != DialogResult.OK) return;
+                var resultado = form as IRetornaResultadoReceita;
+                if (resultado == null || resultado.Resultado == null) return;
+
+                List<Partida> novas = receita.Criar(ctx, resultado.Resultado.Opcoes);
+                _carregando = true;
+                try
+                {
+                    foreach (Partida p in novas)
+                    {
+                        PreencherAutomaticos(p);
+                        if (Gerador.EhSensor(p)) _sensores.Add(p);
+                        else if (Gerador.EhPid(p)) _pids.Add(p);
+                        else _partidas.Add(p);
+                    }
+                }
+                finally { _carregando = false; }
+                AoMudarDados();
+                AtualizarMaquinas();
+                if (novas.Count > 0)
+                    Log("Máquina " + novas[0].Maquina + " criada: " + novas.Count + " itens. Preencha as tags nas páginas Partidas e Sensores.");
+            }
+        }
+
 
         /// <summary>Tags criadas pelo gerador (defeitos): entram na página Tags e ficam salvas no projeto.</summary>
         private void ReceberTags(List<Io> novas)

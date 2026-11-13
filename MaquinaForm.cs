@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using Genesis.Receitas;    // <-- adicionar
 
 namespace Genesis
 {
     /// <summary>Janela "Nova maquina: preparador de polimero" (variantes e nomes).</summary>
-    internal class MaquinaForm : Form
+    internal class MaquinaForm : Form, IRetornaResultadoReceita
     {
+        public string ReceitaId { get; set; } = "Preparador";
         public List<Partida> Linhas = new List<Partida>();
         private readonly TextBox _db, _desc;
         private readonly ComboBox _agit, _nivel, _rosca, _tipoAg;
@@ -107,6 +109,8 @@ namespace Genesis
             var cancela = Tema.Botao("Cancelar", false, delegate { DialogResult = DialogResult.Cancel; });
             botoes.Controls.Add(ok);
             botoes.Controls.Add(cancela);
+            var btnPerfil = Tema.Botao("Salvar como perfil…", false, delegate { SalvarComoPerfil(); }, "salvar");
+            botoes.Controls.Add(btnPerfil);
 
             Controls.Add(corpo);
             Controls.Add(botoes);
@@ -119,7 +123,7 @@ namespace Genesis
             AtualizarPrevia();
         }
 
-        private OpcoesPreparador Opcoes()
+        public OpcoesPreparador Opcoes()
         {
             return new OpcoesPreparador
             {
@@ -132,7 +136,38 @@ namespace Genesis
                 TipoAgitador = Convert.ToString(_tipoAg.SelectedItem)
             };
         }
-
+        private void SalvarComoPerfil()
+        {
+            
+            OpcoesPreparador o = Opcoes();
+            using (var dlg = new SalvarPerfilForm("Preparador padrão " + o.Db, o.Descricao))
+            {
+                if (dlg.ShowDialog(this) != DialogResult.OK)
+                {
+                    
+                    return;
+                }
+                
+                var perfil = new PerfilReceita
+                {
+                    ReceitaId = ReceitaId,
+                    Nome = dlg.NomePerfil,
+                    Descricao = dlg.DescricaoPerfil,
+                    OpcoesXml = PerfisReceita.Serializar(o, typeof(OpcoesPreparador))
+                };
+                try
+                {
+                    PerfisReceita.Salvar(perfil);
+                    
+                    Dialogo.Info(this, "Perfil \"" + dlg.NomePerfil + "\" salvo.");
+                }
+                catch (Exception ex)
+                {
+                   
+                    Dialogo.Erro(this, "Não foi possível salvar o perfil:\n" + ex.Message);
+                }
+            }
+        }
         private void AtualizarPrevia()
         {
             if (string.IsNullOrWhiteSpace(_db.Text)) { _previa.Text = ""; return; }
@@ -163,6 +198,11 @@ namespace Genesis
             }
             Linhas = Maquinas.CriarPreparador(Opcoes());
             DialogResult = DialogResult.OK;
+        }
+
+        ResultadoReceita IRetornaResultadoReceita.Resultado
+        {
+            get { return new ResultadoReceita { Opcoes = Resultado ?? Opcoes() }; }
         }
     }
 }

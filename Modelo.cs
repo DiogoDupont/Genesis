@@ -194,8 +194,14 @@ namespace Genesis
         /// <summary>Exaustor da cabine (sopradores): BL_PARTIDA_HIBRIDA proprio, defeito desliga o soprador.</summary>
         public bool Exaustor { get; set; }
 
-        /// <summary>Maquina a que pertence (id = DB da maquina, ex.: PP1); vazio = partida avulsa.</summary>
+        /// <summary>Maquina a que pertence (id = DB da maquina, ex.: PP1); vazio = partida avulsa ou periférico.</summary>
         public string Maquina { get; set; } = "";
+
+        /// <summary>
+        /// Subsistema a que pertence (id = DB do subsistema, ex.: FL1); vazio = avulsa ou standalone.
+        /// Uma partida dentro de um subsistema pode ter Maquina (se veio de máquina incluída) ou não (periférico).
+        /// </summary>
+        public string Subsistema { get; set; } = "";
 
         /// <summary>Papel na maquina (SIS, ROS, AG1, AG2, EAG, VAZ, NBA, NAL, NAN, NPO).</summary>
         public string Papel { get; set; } = "";
@@ -405,6 +411,8 @@ namespace Genesis
     {
         public List<Io> Ios = new List<Io>();
         public List<Partida> Partidas = new List<Partida>();
+
+        public Hardware.ProjetoHardware Hardware { get; set; }
 
         public static void Salvar(string arquivo, Projeto projeto)
         {

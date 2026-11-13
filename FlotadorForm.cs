@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using Genesis.Receitas;
 
 namespace Genesis
 {
     /// <summary>Janela "Novo subsistema: Flotador" (o que existe e as variantes de cada item).</summary>
-    internal class FlotadorForm : Form
+    internal class FlotadorForm : Form, IRetornaResultadoReceita
     {
+                /// <summary>Id da receita dona deste form (usado para salvar perfis).</summary>
+        public string ReceitaId { get; set; } = "Flotador";
         public OpcoesFlotador Opcoes = new OpcoesFlotador();
         private readonly Func<string, bool> _dbEmUso;
         private readonly List<Action> _ler = new List<Action>();   // copia a tela para as opcoes
@@ -222,6 +225,30 @@ namespace Genesis
             return cb;
         }
 
+        private void SalvarComoPerfil()
+        {
+            foreach (Action a in _ler) a();   // copia a tela para Opcoes
+            using (var dlg = new SalvarPerfilForm("Flotador padrão " + Opcoes.Sub, Opcoes.Descricao))
+            {
+                if (dlg.ShowDialog(this) != DialogResult.OK) return;
+                var perfil = new PerfilReceita
+                {
+                    ReceitaId = ReceitaId,
+                    Nome = dlg.NomePerfil,
+                    Descricao = dlg.DescricaoPerfil,
+                    OpcoesXml = PerfisReceita.Serializar(Opcoes, typeof(OpcoesFlotador))
+                };
+                try
+                {
+                    PerfisReceita.Salvar(perfil);
+                    Dialogo.Info(this, "Perfil \"" + dlg.NomePerfil + "\" salvo. Ele vai aparecer na próxima vez que você criar um Flotador.");
+                }
+                catch (Exception ex)
+                {
+                    Dialogo.Erro(this, "Não foi possível salvar o perfil:\n" + ex.Message);
+                }
+            }
+        }
         /// <summary>
         /// Unidade do intermitente: Segundos / Minutos / Horas. Tempo ligado: "Sem intermitente" grava "";
         /// tempo desligado: "Igual ao ligado" grava "".
@@ -241,7 +268,7 @@ namespace Genesis
             return cb;
         }
 
-        private void Criar()
+                private void Criar()
         {
             foreach (Action a in _ler) a();
             string db = (Opcoes.Sub ?? "").Trim().ToUpperInvariant();
@@ -258,5 +285,11 @@ namespace Genesis
             Opcoes.Sub = db;
             DialogResult = DialogResult.OK;
         }
-    }
-}
+
+        // expõe as opções escolhidas para o MainForm via contrato genérico
+        ResultadoReceita IRetornaResultadoReceita.Resultado
+        {
+            get { return new ResultadoReceita { Opcoes = Opcoes }; }
+        }
+    }   // <-- fecha a classe FlotadorForm (uma chave)
+}       // <-- fecha o namespace (uma chave)
