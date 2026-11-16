@@ -374,7 +374,7 @@ namespace Genesis
         }
 
         /// <summary>DBs de instancia da partida: (nome, FB padrao).</summary>
-        internal List<KeyValuePair<string, string>> InstanciasDaPartida(Partida p)
+                internal List<KeyValuePair<string, string>> InstanciasDaPartida(Partida p)
         {
             TipoPartida t = BuscarTipo(p.Tipo);
             if (t.Pid) return new List<KeyValuePair<string, string>>();   // PID_Compact e objeto tecnologico (criado a parte)
@@ -411,6 +411,9 @@ namespace Genesis
                 lista.Add(new KeyValuePair<string, string>(p.InstanciaExa, FbPartida));
                 lista.Add(new KeyValuePair<string, string>(p.InstanciaSevExa, FbSeveridade));
             }
+
+            
+
             return lista;
         }
 
@@ -957,7 +960,7 @@ namespace Genesis
                         }
                         try
                         {
-                            if (!ImportarECompilar(grupo, sg)) tudoOk = false;
+                                if (!ImportarECompilar(plc, grupo, sg)) tudoOk = false;
                         }
                         catch (Exception ex)
                         {
@@ -1754,7 +1757,7 @@ namespace Genesis
             return r;
         }
 
-        private string XmlFc(SubsistemaGerado sg, Func<string, bool> existe, IEnumerable<Partida> emitir = null)
+                 private string XmlFc(SubsistemaGerado sg, Func<string, bool> existe, IEnumerable<Partida> emitir = null)
         {
             _id = 1;
             var sb = new StringBuilder();
@@ -1768,8 +1771,10 @@ namespace Genesis
             sb.AppendLine("        <Section Name=\"Input\" />");
             sb.AppendLine("        <Section Name=\"Output\" />");
             sb.AppendLine("        <Section Name=\"InOut\" />");
-            List<Partida> comTemp = (emitir ?? sg.Partidas).Where(x => !EhPid(x))
+
+                        List<Partida> comTemp = (emitir ?? sg.Partidas).Where(x => !EhPid(x))
                 .Where(x => { TipoPartida t = BuscarTipo(x.Tipo); return t.SenAna && !t.SenAnalitico; }).ToList();
+            
             if (comTemp.Count == 0)
                 sb.AppendLine("        <Section Name=\"Temp\" />");
             else
@@ -1779,6 +1784,7 @@ namespace Genesis
                     sb.AppendLine("          <Member Name=\"" + x.TempLeiAux + "\" Datatype=\"Real\" />");
                 sb.AppendLine("        </Section>");
             }
+
             sb.AppendLine("        <Section Name=\"Constant\" />");
             sb.AppendLine("        <Section Name=\"Return\">");
             sb.AppendLine("          <Member Name=\"Ret_Val\" Datatype=\"Void\" Accessibility=\"Public\" />");
@@ -1806,6 +1812,40 @@ namespace Genesis
             return sb.ToString();
         }
 
+        /// <summary>FC com as redes dos PIDs (para chamar no OB de interrupcao ciclica).</summary>
+        private string XmlFcPid(SubsistemaGerado sg, string nomeFc, IEnumerable<Partida> pids)
+        {
+            _id = 1;
+            var sb = new StringBuilder();
+            sb.AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+            sb.AppendLine("<Document>");
+            sb.AppendLine("  <Engineering version=\"V20\" />");
+            sb.AppendLine("  <SW.Blocks.FC ID=\"0\">");
+            sb.AppendLine("    <AttributeList>");
+            sb.AppendLine("      <AutoNumber>true</AutoNumber>");
+            sb.AppendLine("      <Interface><Sections xmlns=\"" + NsIf + "\">");
+            sb.AppendLine("        <Section Name=\"Input\" />");
+            sb.AppendLine("        <Section Name=\"Output\" />");
+            sb.AppendLine("        <Section Name=\"InOut\" />");
+            sb.AppendLine("        <Section Name=\"Temp\" />");
+            sb.AppendLine("        <Section Name=\"Constant\" />");
+            sb.AppendLine("        <Section Name=\"Return\">");
+            sb.AppendLine("          <Member Name=\"Ret_Val\" Datatype=\"Void\" Accessibility=\"Public\" />");
+            sb.AppendLine("        </Section>");
+            sb.AppendLine("      </Sections></Interface>");
+            sb.AppendLine("      <MemoryLayout>Optimized</MemoryLayout>");
+            sb.AppendLine("      <Name>" + nomeFc + "</Name>");
+            sb.AppendLine("      <Namespace />");
+            sb.AppendLine("      <ProgrammingLanguage>LAD</ProgrammingLanguage>");
+            sb.AppendLine("      <SetENOAutomatically>false</SetENOAutomatically>");
+            sb.AppendLine("    </AttributeList>");
+            sb.AppendLine("    <ObjectList>");
+            foreach (Partida pid in pids) sb.Append(XmlRedePid(sg, pid));
+            sb.AppendLine("    </ObjectList>");
+            sb.AppendLine("  </SW.Blocks.FC>");
+            sb.AppendLine("</Document>");
+            return sb.ToString();
+        }
         /// <summary>
         /// Bypass: nao ha entrada de confirmacao do contator. O pino recebe
         /// LEI_HAB em serie com o liberar (CMD_LO1 ou CMD_LO2) NEGADO.
@@ -2205,6 +2245,7 @@ namespace Genesis
             if (sv1 != null) r.Entrada(sv, "MOT_LEI_SV1", sv1);
             r.Entrada(sv, "MOT_LEI_SV2", Rede.Ident(r.Acesso("SYM|" + b + "LEI_DEF")));
             r.Entrada(sv, "MOT_LEI_SV4", Rede.Ident(r.Acesso("SYM|" + b + lo1)));
+            
             r.Saida(sv, "MOT_LEI_SVD", Rede.Ident(r.Acesso("SYM|" + b + saidaSev)));
             r.FecharPinos(sv, PinosSeveridade);
 
@@ -2220,8 +2261,9 @@ namespace Genesis
                 r.Saida(sv2, "MOT_LEI_SVD", Rede.Ident(r.Acesso("SYM|" + b + "LEI_SV2")));
                 r.FecharPinos(sv2, PinosSeveridade);
             }
-
-            return Embrulhar(r, p.Descricao);
+        
+                        // Se for Adensador, gera a lógica de contador CTU extra
+                        return Embrulhar(r, p.Descricao);
         }
 
         /// <summary>Rede (CompileUnit) com as partes, os fios e o titulo.</summary>
@@ -3001,39 +3043,10 @@ namespace Genesis
         }
 
         /// <summary>FC com as redes dos PIDs (para chamar no OB de interrupcao ciclica).</summary>
-        private string XmlFcPid(SubsistemaGerado sg, string nomeFc, IEnumerable<Partida> pids)
-        {
-            _id = 1;
-            var sb = new StringBuilder();
-            sb.AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
-            sb.AppendLine("<Document>");
-            sb.AppendLine("  <Engineering version=\"V20\" />");
-            sb.AppendLine("  <SW.Blocks.FC ID=\"0\">");
-            sb.AppendLine("    <AttributeList>");
-            sb.AppendLine("      <AutoNumber>true</AutoNumber>");
-            sb.AppendLine("      <Interface><Sections xmlns=\"" + NsIf + "\">");
-            sb.AppendLine("        <Section Name=\"Input\" />");
-            sb.AppendLine("        <Section Name=\"Output\" />");
-            sb.AppendLine("        <Section Name=\"InOut\" />");
-            sb.AppendLine("        <Section Name=\"Temp\" />");
-            sb.AppendLine("        <Section Name=\"Constant\" />");
-            sb.AppendLine("        <Section Name=\"Return\">");
-            sb.AppendLine("          <Member Name=\"Ret_Val\" Datatype=\"Void\" Accessibility=\"Public\" />");
-            sb.AppendLine("        </Section>");
-            sb.AppendLine("      </Sections></Interface>");
-            sb.AppendLine("      <MemoryLayout>Optimized</MemoryLayout>");
-            sb.AppendLine("      <Name>" + nomeFc + "</Name>");
-            sb.AppendLine("      <Namespace />");
-            sb.AppendLine("      <ProgrammingLanguage>LAD</ProgrammingLanguage>");
-            sb.AppendLine("      <SetENOAutomatically>false</SetENOAutomatically>");
-            sb.AppendLine("    </AttributeList>");
-            sb.AppendLine("    <ObjectList>");
-            foreach (Partida pid in pids) sb.Append(XmlRedePid(sg, pid));
-            sb.AppendLine("    </ObjectList>");
-            sb.AppendLine("  </SW.Blocks.FC>");
-            sb.AppendLine("</Document>");
-            return sb.ToString();
-        }
+        
+
+        /// <summary>
+        /// Bypass: nao ha entrada de confirmacao do contator. O pino recebe
 
         // ===================================================================
         //  PID_Compact: objeto tecnologico (criado pela API; nao e DB de instancia comum)
@@ -3394,7 +3407,8 @@ namespace Genesis
                 return m;
             }
 
-            /// <summary>SUB (tipo automatico): en (null = trilho), in1 - in2 -> out.</summary>
+                        /// <summary>SUB (tipo automatico): en (null = trilho), in1 - in2 -> out.</summary>
+                        /// <summary>SUB (tipo automatico): en (null = trilho), in1 - in2 -> out.</summary>
             public int Subtrair(string en, string in1, string in2, string saida)
             {
                 int s = _uid++;
@@ -3412,6 +3426,20 @@ namespace Genesis
             {
                 int d = _uid++;
                 _partes.AppendLine("<Part Name=\"Div\" UId=\"" + d + "\" DisabledENO=\"true\">"
+                    + "<AutomaticTyped Name=\"SrcType\" /></Part>");
+                LigarEn(d, "en", en);
+                Fio(in1, Pino(d, "in1"));
+                Fio(in2, Pino(d, "in2"));
+                Fio(Pino(d, "out"), saida);
+                return d;
+            }
+
+            /// <summary>MUL (tipo automatico): en (null = trilho), in1 * in2 -> out.</summary>
+            public int Multiplicar(string en, string in1, string in2, string saida)
+            {
+                int d = _uid++;
+                _partes.AppendLine("<Part Name=\"Mul\" UId=\"" + d + "\" DisabledENO=\"true\">"
+                    + "<TemplateValue Name=\"Card\" Type=\"Cardinality\">2</TemplateValue>"
                     + "<AutomaticTyped Name=\"SrcType\" /></Part>");
                 LigarEn(d, "en", en);
                 Fio(in1, Pino(d, "in1"));
@@ -3483,6 +3511,22 @@ namespace Genesis
                 _partes.AppendLine("<Part Name=\"" + tipo + "\" Version=\"1.0\" UId=\"" + p + "\">"
                     + "<Instance Scope=\"GlobalVariable\" UId=\"" + inst + "\">" + comps + "</Instance>"
                     + "<TemplateValue Name=\"time_type\" Type=\"Type\">Time</TemplateValue></Part>");
+                _ligados[p] = new HashSet<string>();
+                return p;
+            }
+
+                    
+                        /// <summary>CTU (Contador): instancia global, tipo Int.</summary>
+            public int Contador(string instancia)
+            {
+                int p = _uid++;
+                int inst = _uid++;
+                _partes.AppendLine("<Part Name=\"CTU\" Version=\"1.0\" UId=\"" + p + "\">"
+                    + "<Instance Scope=\"GlobalVariable\" UId=\"" + inst + "\">"
+                    + "<Component Name=\"" + SecurityElement.Escape(instancia) + "\" />"
+                    + "</Instance>"
+                    + "<TemplateValue Name=\"value_type\" Type=\"Type\">Int</TemplateValue>"
+                    + "</Part>");
                 _ligados[p] = new HashSet<string>();
                 return p;
             }
@@ -3619,8 +3663,10 @@ namespace Genesis
             return true;
         }
 
-        private bool ImportarECompilar(PlcBlockUserGroup grupo, SubsistemaGerado sg)
+        private bool ImportarECompilar(PlcSoftware plc, PlcBlockUserGroup grupo, SubsistemaGerado sg)
         {
+            
+            
             Log("--- Subsistema " + sg.Sub + " (" + sg.Partidas.Count + " partidas) ---");
 
             Log("Importando " + sg.NomeDb + "...");
@@ -4337,12 +4383,14 @@ namespace Genesis
         ///  3) a pasta de export, com o modelo de outra versao do mesmo bloco (troca so o nome do FB).
         /// Devolve null se faltar modelo de algum.
         /// </summary>
-        private Dictionary<string, string> CarregarTemplates(PlcSoftware plc, List<string> fbs, string pastaExport)
+                private Dictionary<string, string> CarregarTemplates(PlcSoftware plc, List<string> fbs, string pastaExport)
         {
             var templates = new Dictionary<string, string>();
 
             foreach (string fb in fbs)
             {
+                if (templates.ContainsKey(fb)) continue;
+
                 string doProjeto = TemplateDoProjeto(plc, fb);
                 if (doProjeto != null)
                 {
@@ -4360,10 +4408,8 @@ namespace Genesis
                         Log("Modelo de instancia (" + fb + "): pasta de export (" + Path.GetFileName(arq) + ")");
                         continue;
                     }
-
                 }
 
-                // o proprio FB do projeto (mesma versao): monta a instancia pela interface dele
                 string doFbProjeto = TemplateDoFbDoProjeto(plc, fb);
                 if (doFbProjeto != null)
                 {
@@ -4376,17 +4422,15 @@ namespace Genesis
                 {
                     string equivalente;
                     string arq = AcharTemplateDaFamilia(pastaExport, fb, out equivalente);
+                    if (arq != null)
                     {
-                        if (arq != null)
-                        {
-                            templates[fb] = File.ReadAllText(arq, Encoding.UTF8).Replace(
-                                "<InstanceOfName>" + equivalente + "</InstanceOfName>",
-                                "<InstanceOfName>" + fb + "</InstanceOfName>");
-                            Log("AVISO: nao achei DB de instancia do " + fb + " no projeto nem no export;");
-                            Log("       usei o modelo do " + equivalente + " (outra versao do mesmo bloco). Se o TIA reclamar do");
-                            Log("       DB de instancia, crie uma chamada do " + fb + " a mao uma vez e gere de novo.");
-                            continue;
-                        }
+                        templates[fb] = File.ReadAllText(arq, Encoding.UTF8).Replace(
+                            "<InstanceOfName>" + equivalente + "</InstanceOfName>",
+                            "<InstanceOfName>" + fb + "</InstanceOfName>");
+                        Log("AVISO: nao achei DB de instancia do " + fb + " no projeto nem no export;");
+                        Log("       usei o modelo do " + equivalente + " (outra versao do mesmo bloco). Se o TIA reclamar do");
+                        Log("       DB de instancia, crie uma chamada do " + fb + " a mao uma vez e gere de novo.");
+                        continue;
                     }
                 }
 
@@ -4412,7 +4456,6 @@ namespace Genesis
             }
             return templates;
         }
-
         /// <summary>
         /// Exporta o FB do projeto (numa pasta temporaria) e monta o DB de instancia pela interface dele.
         /// Serve para FB que esta no projeto mas ainda nao foi chamado (sem nenhum DB de instancia).

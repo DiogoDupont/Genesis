@@ -129,7 +129,7 @@ namespace Genesis
         /// Subsistema flotador (como o FLOTADOR PRIMARIO): partidas, sensores e PIDs com os intertravamentos
         /// e modulacoes ja ligados. Sensores de tanques de quimicos que ja existirem no projeto sao reaproveitados.
         /// </summary>
-        public static List<Partida> CriarFlotador(OpcoesFlotador o, IEnumerable<Partida> existentes)
+                public static List<Partida> CriarFlotador(OpcoesFlotador o, IEnumerable<Partida> existentes)
         {
             string sub = o.Sub.Trim().ToUpperInvariant();
             var l = new List<Partida>();
@@ -155,7 +155,14 @@ namespace Genesis
             {
                 return n == QuimicoFlotador.NivelAnalogico ? "Sensor nível analógico" : "Sensor nível baixo digital";
             };
-            Func<string, string> nivelFn = delegate (string n) { return n == QuimicoFlotador.NivelAnalogico ? "TAN" : "TBA"; };
+            
+            // NOVO: Agora usa a geração inteligente TBA/TB1/TB2/TAN/TN1...
+            Func<string, string, string> nivelFn = delegate (string eq, string n) 
+            { 
+                string tipo = n == QuimicoFlotador.NivelAnalogico ? "Sensor nível analógico" : "Sensor nível baixo digital";
+                string tag = GerarTagNivel(tipo, eq, jaHa.Concat(l));
+                return tag.Replace("SEN_" + eq + "_", ""); // Retorna só o final (TAN, TBA, TB1, etc)
+            };
 
             // 1 bomba = BBA; varias = BB1, BB2, BB3 (com alternancia, se marcada)
             Func<string, int, string, string, bool, List<Partida>> bombas = delegate (string eq, int qtd, string tipo, string desc, bool alt)
@@ -184,14 +191,14 @@ namespace Genesis
             string nivEqu = null;
             if (o.NivelEqualizacao != QuimicoFlotador.NivelNenhum)
             {
-                sensor("SEN", "EQU", nivelFn(o.NivelEqualizacao), nivelTipo(o.NivelEqualizacao), "NÍVEL TANQUE EQUALIZAÇÃO");
-                nivEqu = "SEN.EQU." + nivelFn(o.NivelEqualizacao);
+                sensor("SEN", "EQU", nivelFn("EQU", o.NivelEqualizacao), nivelTipo(o.NivelEqualizacao), "NÍVEL TANQUE EQUALIZAÇÃO");
+                nivEqu = "SEN.EQU." + nivelFn("EQU", o.NivelEqualizacao);
             }
             string nivLodo = null;
             if (o.NivelLodo != QuimicoFlotador.NivelNenhum && (o.BombaLodo || o.Raspador))
             {
-                sensor("SEN", "LFL", nivelFn(o.NivelLodo), nivelTipo(o.NivelLodo), "NÍVEL TANQUE LODO FLOTADO");
-                nivLodo = "SEN.LFL." + nivelFn(o.NivelLodo);
+                sensor("SEN", "LFL", nivelFn("LFL", o.NivelLodo), nivelTipo(o.NivelLodo), "NÍVEL TANQUE LODO FLOTADO");
+                nivLodo = "SEN.LFL." + nivelFn("LFL", o.NivelLodo);
             }
 
             // --- equipamentos ---
@@ -264,8 +271,8 @@ namespace Genesis
                 }
                 else if (q.Nivel != QuimicoFlotador.NivelNenhum)
                 {
-                    sensor("SEN", q.Codigo, nivelFn(q.Nivel), nivelTipo(q.Nivel), "NÍVEL TANQUE " + q.Nome);
-                    nivel = "SEN." + q.Codigo + "." + nivelFn(q.Nivel) + ".LEI_BAI";
+                    sensor("SEN", q.Codigo, nivelFn(q.Codigo, q.Nivel), nivelTipo(q.Nivel), "NÍVEL TANQUE " + q.Nome);
+                    nivel = "SEN." + q.Codigo + "." + nivelFn(q.Codigo, q.Nivel) + ".LEI_BAI";
                 }
 
                 // PID de pH (acido / alcalinizante)
@@ -478,9 +485,11 @@ namespace Genesis
             }
         }
 
-        public static List<string> MaquinasNoProjeto(IEnumerable<Partida> todas)
+                public static List<string> MaquinasNoProjeto(IEnumerable<Partida> todas)
         {
-            return todas.Where(x => !string.IsNullOrEmpty(x.Maquina)).Select(x => x.Maquina).Distinct().ToList();
+            return todas.Where(x => !string.IsNullOrEmpty(x.Maquina) || !string.IsNullOrEmpty(x.Subsistema))
+                        .Select(x => !string.IsNullOrEmpty(x.Maquina) ? x.Maquina : x.Subsistema)
+                        .Distinct().ToList();
         }
     }
 

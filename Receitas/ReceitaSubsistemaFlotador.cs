@@ -6,28 +6,26 @@ using System.Windows.Forms;
 namespace Genesis.Receitas
 {
     /// <summary>
-    /// Receita do Flotador. É um wrapper fino em volta do que já existe em Maquinas.cs:
-    ///   CriarFlotador              → Criar
-    ///   OpcoesDoFlotador           → OpcoesDe
-    ///   PlanejarFlotador           → Planejar
-    ///   AplicarNasMantidasFlotador → AplicarNasMantidas
-    ///   FlotadorForm               → CriarForm
+    /// Receita do SUBSISTEMA Flotador. É wrapper em volta de Maquinas.cs (mesmo motor do antigo
+    /// ReceitaFlotador), com uma diferença: marca Subsistema = id em cada linha criada, para a UI
+    /// e futuras features (árvore de projeto, alarmes) distinguirem "veio do subsistema X".
     ///
-    /// Nada de lógica nova aqui. Só traduz o contrato genérico para as funções específicas.
+    /// As linhas continuam tendo Maquina = id (compatibilidade com o AtualizarMaquinas atual).
     /// </summary>
-    internal class ReceitaFlotador : IReceitaMaquina
+    internal class ReceitaSubsistemaFlotador : IReceitaSubsistema
     {
         public string Id { get { return "Flotador"; } }
         public string NomeExibicao { get { return "Flotador"; } }
         public string Descricao { get { return "Subsistema completo: equalização, alimentação, microbolhas, raspador (com pás), floculador, lodo e químicos com níveis, vazão e PID de pH."; } }
         public string Icone { get { return "flotador"; } }
 
+        public object OpcoesPadrao { get { return new OpcoesFlotador(); } }
+
         public string SugerirId(ContextoReceita ctx)
         {
-            // o Flotador usa Sub == "FL1" para partidas próprias E Maquina == "FL1" para os sensores,
-            // então o id tem que estar livre nos dois campos
             int n = 1;
             while (ctx.TodasAsLinhas.Any(x =>
+                       string.Equals(x.Subsistema, "FL" + n, StringComparison.OrdinalIgnoreCase) ||
                        string.Equals(x.Maquina, "FL" + n, StringComparison.OrdinalIgnoreCase) ||
                        string.Equals(x.Sub, "FL" + n, StringComparison.OrdinalIgnoreCase)))
                 n++;
@@ -36,35 +34,34 @@ namespace Genesis.Receitas
 
         public Form CriarForm(string sugestaoId, ContextoReceita ctx, Func<string, bool> dbEmUso, object editar)
         {
-            // os preparadores existentes viram opção "Do preparador PPx" para o nível do floculante
             var preparadores = ctx.TodasAsLinhas
                 .Where(x => Maquinas.EhPreparador(x))
                 .Select(x => x.Maquina)
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
-
             return new FlotadorForm(sugestaoId, preparadores, dbEmUso, editar as OpcoesFlotador);
         }
 
         public List<Partida> Criar(ContextoReceita ctx, object opcoes)
         {
-            return Maquinas.CriarFlotador((OpcoesFlotador)opcoes, ctx.TodasAsLinhas);
+            List<Partida> linhas = Maquinas.CriarFlotador((OpcoesFlotador)opcoes, ctx.TodasAsLinhas);
+            string id = ((OpcoesFlotador)opcoes).Sub.Trim().ToUpperInvariant();
+            foreach (Partida p in linhas)
+            {
+                p.Subsistema = id;
+                if (string.IsNullOrEmpty(p.Maquina)) p.Maquina = id;   // compatibilidade com AtualizarMaquinas atual
+            }
+            return linhas;
         }
 
         public object OpcoesDe(ContextoReceita ctx, IEnumerable<Partida> itens, string id)
         {
-            // OpcoesDoFlotador precisa de TODAS as linhas (para achar sensores de tanque compartilhados)
             return Maquinas.OpcoesDoFlotador(id, ctx.TodasAsLinhas);
         }
 
-        public object OpcoesPadrao { get { return new OpcoesFlotador(); } }
-
         public PlanoReconfiguracao Planejar(ContextoReceita ctx, string id, List<Partida> itens, object novasOpcoes)
         {
-            // PlanejarFlotador também precisa de TODAS as linhas (mesmo motivo)
             PlanoFlotador plano = Maquinas.PlanejarFlotador(id, ctx.TodasAsLinhas, (OpcoesFlotador)novasOpcoes);
-
-            // traduz PlanoFlotador → PlanoReconfiguracao genérico
             var generico = new PlanoReconfiguracao
             {
                 IdAntigo = plano.DbAntigo,
@@ -82,7 +79,7 @@ namespace Genesis.Receitas
         {
             var original = plano.PlanoEspecifico as PlanoFlotador;
             if (original == null)
-                throw new InvalidOperationException("AplicarNasMantidas chamado sem Planejar antes (PlanoEspecifico vazio).");
+                throw new InvalidOperationException("AplicarNasMantidas chamado sem Planejar antes.");
             Maquinas.AplicarNasMantidasFlotador(original);
         }
     }

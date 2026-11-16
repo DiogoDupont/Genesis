@@ -6,10 +6,6 @@ using System.Windows.Forms;
 
 namespace Genesis.Receitas
 {
-    /// <summary>
-    /// Form de escolha de perfil (aberto antes de criar uma receita, se houver perfis salvos).
-    /// Devolve o perfil escolhido ou "null" = usar padrão de fábrica.
-    /// </summary>
     internal class PerfilForm : Form
     {
         public PerfilReceita Escolhido { get; private set; }
@@ -21,7 +17,7 @@ namespace Genesis.Receitas
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false; MinimizeBox = false; ShowInTaskbar = false;
             StartPosition = FormStartPosition.CenterParent;
-            ClientSize = new Size(560, 420);
+            ClientSize = new Size(620, 480); // AUMENTADO PARA NÃO CORTAR OS BOTÕES
             Tema.Janela(this);
 
             var cab = new FundoDegrade { Dock = DockStyle.Top, Height = 72 };
@@ -50,9 +46,11 @@ namespace Genesis.Receitas
                 perfis.RemoveAt(lista.SelectedIndex);
                 lista.Items.RemoveAt(lista.SelectedIndex);
             }, "lixeira");
+            btnApagar.AutoSize = false;
+            btnApagar.Size = new Size(140, 38);
             btnApagar.Anchor = AnchorStyles.Left;
 
-            var rodape = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 100, FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(16, 12, 6, 0), BackColor = Tema.FundoEscuro, WrapContents = false };
+            var rodape = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 62, FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(16, 12, 6, 0), BackColor = Tema.FundoEscuro, WrapContents = false };
             var ok = Tema.Botao("Usar este perfil", true, delegate
             {
                 if (lista.SelectedIndex < 0) { Dialogo.Aviso(this, "Escolha um perfil ou clique em \"Padrão de fábrica\"."); return; }
@@ -82,9 +80,6 @@ namespace Genesis.Receitas
         }
     }
 
-    /// <summary>
-    /// Form de salvar um novo perfil (aberto pelo botão "Salvar como perfil" no rodapé dos forms de receita).
-    /// </summary>
     internal class SalvarPerfilForm : Form
     {
         public string NomePerfil { get; private set; }

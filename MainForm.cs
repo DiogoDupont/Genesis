@@ -1033,7 +1033,10 @@ namespace Genesis
         {
             var todas = _partidas.Concat(_sensores).Concat(_pids).ToList();
             var rotulos = Maquinas.MaquinasNoProjeto(todas)
-                .Select(id => RotuloMaquina(id, todas.Where(x => x.Maquina == id).Select(x => x.Receita).FirstOrDefault(r => !string.IsNullOrEmpty(r)) ?? Maquinas.Preparador))
+                .Select(id => {
+                    string rec = todas.FirstOrDefault(x => (string.Equals(x.Maquina, id, StringComparison.OrdinalIgnoreCase) || string.Equals(x.Subsistema, id, StringComparison.OrdinalIgnoreCase)) && !string.IsNullOrEmpty(x.Receita))?.Receita;
+                    return RotuloMaquina(id, rec ?? Maquinas.Preparador);
+                })
                 .ToList();
             foreach (Cadastro c in new[] { _cadPart, _cadSen, _cadPid })
             {
@@ -1083,7 +1086,11 @@ namespace Genesis
                 bool v = f.Length == 0 || texto.Contains(f);
                 if (maq == FiltroPendentes) v = v && Resumo(cad, p).StartsWith("⚠");
                 else if (maq == FiltroAvulsas) v = v && string.IsNullOrEmpty(p.Maquina);
-                else if (!string.IsNullOrEmpty(maq) && maq != FiltroTodas) v = v && p.Maquina == RotuloParaMaquina(maq);
+                else if (!string.IsNullOrEmpty(maq) && maq != FiltroTodas) 
+                {
+                    string idMaq = RotuloParaMaquina(maq);
+                    v = v && (string.Equals(p.Maquina, idMaq, StringComparison.OrdinalIgnoreCase) || string.Equals(p.Subsistema, idMaq, StringComparison.OrdinalIgnoreCase));
+                }
                 ver[i] = v;
             }
 
@@ -3701,7 +3708,7 @@ namespace Genesis
             foreach (string mq in maqs)
             {
                 string id = mq;
-                var itens = todas.Where(x => x.Maquina == id).ToList();
+                var itens = todas.Where(x => string.Equals(x.Maquina, id, StringComparison.OrdinalIgnoreCase) || string.Equals(x.Subsistema, id, StringComparison.OrdinalIgnoreCase)).ToList();
                 Partida sis = itens.FirstOrDefault(x => x.Papel == Maquinas.PapelSis);
                 int pend = itens.Count(x => Resumo(Gerador.EhSensor(x) ? _cadSen : Gerador.EhPid(x) ? _cadPid : _cadPart, x).StartsWith("⚠"));
 
@@ -3720,23 +3727,29 @@ namespace Genesis
                     AutoSize = true, Font = Tema.Fonte(8.5f, FontStyle.Bold), ForeColor = pend == 0 ? Tema.Verde : Tema.Amarelo, BackColor = Color.Transparent, Location = new Point(21, d.Bottom + 6)
                 };
                 c.Height = pdl.Bottom + 26;
-                string receita = itens.Select(x => x.Receita).FirstOrDefault(r => !string.IsNullOrEmpty(r)) ?? Maquinas.Preparador;
+                
+                string receitaSub = itens.FirstOrDefault(x => !string.IsNullOrEmpty(x.Subsistema) && x.Subsistema == id)?.Receita;
+                string receitaNome = receitaSub ?? itens.Select(x => x.Receita).FirstOrDefault(r => !string.IsNullOrEmpty(r));
+                string receita = receitaNome ?? Maquinas.Preparador;
                 if (sis == null) titulo = receita;
                 t.Text = id + "  ·  " + titulo;
+                
                 var edi = Tema.Botao("Editar", true, delegate { EditarMaquina(id); });
                 edi.AutoSize = false;
                 edi.Size = new Size(110, 38);
                 edi.Location = new Point(c.Width - 292, 22);
                 c.Controls.Add(edi);
-                bool ehFlotador = itens.Any(x => x.Receita == Maquinas.Flotador);
-                if ((sis != null && Maquinas.EhPreparador(sis)) || ehFlotador)
+                
+                var receitaObj = ReceitaRegistry.PorNome(receitaNome);
+                if (receitaObj != null)
                 {
-                    var rec = Tema.Botao("Reconfigurar", false, delegate { if (ehFlotador) ReconfigurarFlotador(id); else ReconfigurarPreparador(id); });
+                    var rec = Tema.Botao("Reconfigurar", false, delegate { ReconfigurarReceita(id); });
                     rec.AutoSize = false;
                     rec.Size = new Size(130, 38);
                     rec.Location = new Point(c.Width - 432, 22);
                     c.Controls.Add(rec);
                 }
+                
                 var rem = (BotaoTema)Tema.Botao("Remover", false, delegate { RemoverMaquina(id); }, "lixeira");
                 rem.Perigo = true;
                 rem.AutoSize = false;
@@ -3744,6 +3757,69 @@ namespace Genesis
                 rem.Location = new Point(c.Width - 170, 22);
                 c.Controls.Add(t); c.Controls.Add(d); c.Controls.Add(pdl); c.Controls.Add(rem);
                 _listaMaquinas.Controls.Add(c);
+            }
+        }
+
+        private void ReconfigurarReceita(string id)
+        {
+            // Procura os itens da máquina E os itens do subsistema (para achar periféricos)
+            var itens = _partidas.Concat(_sensores).Concat(_pids)
+                .Where(x => string.Equals(x.Maquina, id, StringComparison.OrdinalIgnoreCase) || 
+                            string.Equals(x.Subsistema, id, StringComparison.OrdinalIgnoreCase)).ToList();
+            
+            if (itens.Count == 0) return;
+            
+            // Tenta achar a receita: primeiro olha se é um subsistema, senão pega a receita da máquina
+            string receitaSub = itens.FirstOrDefault(x => !string.IsNullOrEmpty(x.Subsistema) && string.Equals(x.Subsistema, id, StringComparison.OrdinalIgnoreCase))?.Receita;
+            string receitaNome = receitaSub ?? itens.Select(x => x.Receita).FirstOrDefault(r => !string.IsNullOrEmpty(r));
+            
+            IReceitaMaquina receita = ReceitaRegistry.PorNome(receitaNome) ?? ReceitaRegistry.PorId(receitaNome);
+            if (receita == null)
+            {
+                Dialogo.Aviso(this, "A máquina " + id + " foi criada com uma receita que não está mais registrada ("
+                    + (receitaNome ?? "?") + "). Não é possível reconfigurá-la automaticamente.");
+                return;
+            }
+
+            ContextoReceita ctx = ContextoAtual();
+            object opcoesAtuais = receita.OpcoesDe(ctx, itens, id);
+            
+            using (Form form = receita.CriarForm(id, ctx, ctx.IdEmUso, opcoesAtuais))
+            {
+                if (form.ShowDialog(this) != DialogResult.OK) return;
+                var resultado = form as IRetornaResultadoReceita;
+                if (resultado == null || resultado.Resultado == null) return;
+
+                PlanoReconfiguracao plano = receita.Planejar(ctx, id, itens, resultado.Resultado.Opcoes);
+
+                var listas = new ListasDoProjeto { Partidas = _partidas, Sensores = _sensores, Pids = _pids };
+                Func<List<Partida>, bool> confirmar = delegate (List<Partida> removidas)
+                {
+                    string lista = string.Join(", ", removidas.Select(x => x.Sub + "." + x.Eq + "." + x.Fn).ToArray());
+                    return _confirmar("Estes itens deixam de existir e serão apagados (com as tags que já preencheu neles):\n\n"
+                        + lista + "\n\nContinuar?");
+                };
+
+                _carregando = true;
+                ResultadoAplicacao res;
+                try
+                {
+                    res = AplicadorPlano.Aplicar(receita, plano, confirmar, listas, _ios, PreencherAutomaticos);
+                }
+                finally
+                {
+                    _carregando = false;
+                }
+                if (res.CanceladoPeloUsuario) return;
+
+                if (_maqAtual == plano.IdAntigo && plano.Renomeia) _maqAtual = plano.IdNovo;
+                ReligarTags();
+                foreach (Cadastro c in new[] { _cadPart, _cadSen, _cadPid }) MontarEditor(c, true);
+                AoMudarDados();
+                AtualizarMaquinas();
+                Log("Máquina/Subsistema " + plano.IdNovo + " reconfigurado: " + res.Resumo());
+                if (plano.Renomeia)
+                    Log("AVISO: o DB " + plano.IdAntigo + " que já foi gerado no TIA continua lá; apague-o (e a FC antiga) se não for mais usar. Gere a máquina de novo para criar o " + plano.IdNovo + ".");
             }
         }
 
@@ -3844,10 +3920,9 @@ namespace Genesis
 
         private List<Partida> ItensDaMaquina(string id)
         {
-            // agrupados: partidas, sensores e PIDs (na ordem das listas)
-            return _partidas.Where(x => x.Maquina == id)
-                .Concat(_sensores.Where(x => x.Maquina == id))
-                .Concat(_pids.Where(x => x.Maquina == id)).ToList();
+            return _partidas.Where(x => string.Equals(x.Maquina, id, StringComparison.OrdinalIgnoreCase) || string.Equals(x.Subsistema, id, StringComparison.OrdinalIgnoreCase))
+                .Concat(_sensores.Where(x => string.Equals(x.Maquina, id, StringComparison.OrdinalIgnoreCase) || string.Equals(x.Subsistema, id, StringComparison.OrdinalIgnoreCase)))
+                .Concat(_pids.Where(x => string.Equals(x.Maquina, id, StringComparison.OrdinalIgnoreCase) || string.Equals(x.Subsistema, id, StringComparison.OrdinalIgnoreCase))).ToList();
         }
 
         private void AbrirMaquina(string id)
@@ -3888,10 +3963,10 @@ namespace Genesis
                 + (pend > 0 ? "   ·   ⚠ " + pend + " com campos a preencher" : "   ·   ✓ tudo preenchido");
             _maqResumo.ForeColor = pend > 0 ? Tema.Amarelo : Tema.Verde;
         }
+        
         private void NovaSubsistema(IReceitaSubsistema receita)
         {
-            // Fase 3.2 implementa de verdade
-            Dialogo.Info(this, "Subsistemas serão suportados na próxima fase.");
+            NovaReceita(receita);   // IReceitaSubsistema é IReceitaMaquina
         }
 
                 
@@ -4043,125 +4118,6 @@ namespace Genesis
             }
         }
 
-        /// <summary>
-        /// Reabre a janela de criacao do preparador ja preenchida (DB, agitadores, nivel, tipos de acionamento).
-        /// Ao aplicar, os itens que continuam mantem tags e descricoes; os novos entram no padrao; os que saem pedem confirmacao.
-        /// </summary>
-        private void ReconfigurarPreparador(string id)
-        {
-            FinalizarEdicao();
-            var todas = _partidas.Concat(_sensores).Concat(_pids).ToList();
-            List<Partida> itens = todas.Where(x => string.Equals(x.Maquina, id, StringComparison.OrdinalIgnoreCase)).ToList();
-            OpcoesPreparador atual = Maquinas.OpcoesDoPreparador(itens, id);
-            Func<string, bool> emUso = db => !string.Equals(db, id, StringComparison.OrdinalIgnoreCase)
-                && todas.Any(x => string.Equals(x.Sub, db, StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(x.Maquina, db, StringComparison.OrdinalIgnoreCase)
-                    || (x.Sub == "SEN" && string.Equals(x.Eq, db, StringComparison.OrdinalIgnoreCase)));
-            using (var dlg = new MaquinaForm(id, emUso, atual))
-            {
-                if (dlg.ShowDialog(this) != DialogResult.OK) return;
-                PlanoPreparador plano = Maquinas.PlanejarPreparador(id, itens, dlg.Resultado);
-
-                if (plano.Removidas.Count > 0)
-                {
-                    string lista = string.Join(", ", plano.Removidas.Select(x => x.Sub + "." + x.Eq + "." + x.Fn).ToArray());
-                    if (!_confirmar("Estes itens deixam de existir e serão apagados (com as tags que já preencheu neles):\n\n" + lista + "\n\nContinuar?")) return;
-                }
-
-                bool renomeia = !string.Equals(plano.DbAntigo, plano.DbNovo, StringComparison.OrdinalIgnoreCase);
-                _carregando = true;
-                try
-                {
-                    if (renomeia) Maquinas.RenomearDb(todas, plano.DbAntigo, plano.DbNovo, _ios);
-                    Maquinas.AplicarNasMantidas(plano);
-                    foreach (Partida p in plano.Removidas) { _partidas.Remove(p); _sensores.Remove(p); _pids.Remove(p); }
-                    foreach (Partida p in plano.Novos)
-                    {
-                        PreencherAutomaticos(p);
-                        if (Gerador.EhSensor(p)) _sensores.Add(p); else _partidas.Add(p);
-                    }
-                    foreach (var par in plano.Mantidas) PreencherAutomaticos(par.Key);
-                }
-                finally
-                {
-                    _carregando = false;
-                }
-                if (_maqAtual == plano.DbAntigo) _maqAtual = plano.DbNovo;
-                ReligarTags();
-                foreach (Cadastro c in new[] { _cadPart, _cadSen, _cadPid }) MontarEditor(c, true);
-                AoMudarDados();
-                AtualizarMaquinas();
-                Log("Máquina " + plano.DbNovo + " reconfigurada: " + plano.Mantidas.Count + " itens mantidos, "
-                    + plano.Novos.Count + " novos, " + plano.Removidas.Count + " removidos.");
-                if (renomeia)
-                    Log("AVISO: o DB " + plano.DbAntigo + " que já foi gerado no TIA continua lá; apague-o (e a FC antiga) se não for mais usar. Gere a máquina de novo para criar o " + plano.DbNovo + ".");
-            }
-        }
-
-        /// <summary>
-        /// Reabre a janela do flotador ja preenchida. Ao aplicar, so muda o que voce alterou nela: os itens que continuam mantem
-        /// tags, textos e condicoes editados a mao; os novos entram no padrao; os que saem pedem confirmacao.
-        /// </summary>
-        private void ReconfigurarFlotador(string id)
-        {
-            FinalizarEdicao();
-            var todas = _partidas.Concat(_sensores).Concat(_pids).ToList();
-            OpcoesFlotador atual = Maquinas.OpcoesDoFlotador(id, todas);
-            var preparadores = todas.Where(x => Maquinas.EhPreparador(x)).Select(x => x.Maquina).Distinct().ToList();
-            Func<string, bool> emUso = db => !string.Equals(db, id, StringComparison.OrdinalIgnoreCase)
-                && todas.Any(x => string.Equals(x.Sub, db, StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(x.Maquina, db, StringComparison.OrdinalIgnoreCase)
-                    || (x.Sub == "SEN" && string.Equals(x.Eq, db, StringComparison.OrdinalIgnoreCase)));
-            using (var dlg = new FlotadorForm(id, preparadores, emUso, atual))
-            {
-                if (dlg.ShowDialog(this) != DialogResult.OK) return;
-                PlanoFlotador plano = Maquinas.PlanejarFlotador(id, todas, dlg.Opcoes);
-
-                if (plano.Removidas.Count > 0)
-                {
-                    string lista = string.Join(", ", plano.Removidas.Select(x => x.Sub + "." + x.Eq + "." + x.Fn).ToArray());
-                    if (!_confirmar("Estes itens deixam de existir e serão apagados (com as tags que já preencheu neles):\n\n" + lista + "\n\nContinuar?")) return;
-                }
-
-                bool renomeia = !string.Equals(plano.DbAntigo, plano.DbNovo, StringComparison.OrdinalIgnoreCase);
-                _carregando = true;
-                try
-                {
-                    // 1 bomba = BBA e varias = BB1..: ao mudar a quantidade, o nome automatico das tags acompanha
-                    foreach (FlotMantida m in plano.Mantidas.Where(x => x.Atual.Fn != x.Nova.Fn).ToList())
-                    {
-                        Partida p = m.Atual;
-                        string novoFn = m.Nova.Fn;
-                        SeguirNomeAutomatico(p, delegate { p.Fn = novoFn; });
-                    }
-                    Maquinas.AplicarNasMantidasFlotador(plano);
-                    if (renomeia) Maquinas.RenomearDb(todas, plano.DbAntigo, plano.DbNovo, _ios);
-                    foreach (Partida p in plano.Removidas) { _partidas.Remove(p); _sensores.Remove(p); _pids.Remove(p); }
-                    foreach (Partida p in plano.Novos)
-                    {
-                        PreencherAutomaticos(p);
-                        if (Gerador.EhSensor(p)) _sensores.Add(p);
-                        else if (Gerador.EhPid(p)) _pids.Add(p);
-                        else _partidas.Add(p);
-                    }
-                    foreach (FlotMantida m in plano.Mantidas) PreencherAutomaticos(m.Atual);
-                }
-                finally
-                {
-                    _carregando = false;
-                }
-                if (_maqAtual == plano.DbAntigo) _maqAtual = plano.DbNovo;
-                ReligarTags();
-                foreach (Cadastro c in new[] { _cadPart, _cadSen, _cadPid }) MontarEditor(c, true);
-                AoMudarDados();
-                AtualizarMaquinas();
-                Log("Flotador " + plano.DbNovo + " reconfigurado: " + plano.Mantidas.Count + " itens mantidos, "
-                    + plano.Novos.Count + " novos, " + plano.Removidas.Count + " removidos.");
-                if (renomeia)
-                    Log("AVISO: o DB " + plano.DbAntigo + " que já foi gerado no TIA continua lá; apague-o (e a FC antiga) se não for mais usar. Gere a máquina de novo para criar o " + plano.DbNovo + ".");
-            }
-        }
-
         /// <summary>Muda a linha (ex.: o nome da bomba) e leva junto as tags que ainda tinham o nome automatico antigo (a tag da aba Tags tambem e renomeada).</summary>
         private void SeguirNomeAutomatico(Partida p, Action mudar)
         {
@@ -4189,12 +4145,22 @@ namespace Genesis
 
         private void RemoverMaquina(string id)
         {
-            var itens = _partidas.Concat(_sensores).Concat(_pids).Where(x => x.Maquina == id).ToList();
-            if (!_confirmar("Remover a máquina " + id + " e seus " + itens.Count + " itens (partidas, sensores e PIDs)?")) return;
+            // Procura tanto os itens da máquina quanto os periféricos do subsistema
+            var itens = _partidas.Concat(_sensores).Concat(_pids)
+                .Where(x => string.Equals(x.Maquina, id, StringComparison.OrdinalIgnoreCase) || 
+                            string.Equals(x.Subsistema, id, StringComparison.OrdinalIgnoreCase)).ToList();
+            
+            if (!_confirmar("Remover a máquina/subsistema " + id + " e seus " + itens.Count + " itens (partidas, sensores e PIDs)?")) return;
+            
             _carregando = true;
             try
             {
-                foreach (Partida p in itens) { _partidas.Remove(p); _sensores.Remove(p); _pids.Remove(p); }
+                foreach (Partida p in itens) 
+                { 
+                    _partidas.Remove(p); 
+                    _sensores.Remove(p); 
+                    _pids.Remove(p); 
+                }
             }
             finally
             {
@@ -4203,7 +4169,7 @@ namespace Genesis
             foreach (Cadastro c in new[] { _cadPart, _cadSen, _cadPid }) MontarEditor(c, true);
             AoMudarDados();
             AtualizarMaquinas();
-            Log("Máquina " + id + " removida.");
+            Log("Máquina/Subsistema " + id + " removido.");
         }
 
         // ===================================================================
