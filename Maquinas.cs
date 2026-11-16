@@ -159,9 +159,8 @@ namespace Genesis
             // NOVO: Agora usa a geração inteligente TBA/TB1/TB2/TAN/TN1...
             Func<string, string, string> nivelFn = delegate (string eq, string n) 
             { 
-                string tipo = n == QuimicoFlotador.NivelAnalogico ? "Sensor nível analógico" : "Sensor nível baixo digital";
-                string tag = GerarTagNivel(tipo, eq, jaHa.Concat(l));
-                return tag.Replace("SEN_" + eq + "_", ""); // Retorna só o final (TAN, TBA, TB1, etc)
+                string baseFn = n == QuimicoFlotador.NivelAnalogico ? "TAN" : "TBA";
+                return Genesis.Fabricas.FabricaPartida.CalcularFnNivel(baseFn, eq, jaHa.Concat(l));
             };
 
             // 1 bomba = BBA; varias = BB1, BB2, BB3 (com alternancia, se marcada)

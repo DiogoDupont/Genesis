@@ -16,7 +16,8 @@ namespace Genesis
         private readonly TextBox _db, _desc;
         private readonly ComboBox _cmbMot, _cmbTipoAli, _cmbTipoHig, _cmbTipoVhi, _cmbTipoNivAli, _cmbLigHig, _cmbDesHig;
         private readonly CheckBox _chkAli, _chkNivAli, _chkHig, _chkVhi, _chkIntermitenteHig;
-        private readonly TextBox _txtTagNivAli;
+        private readonly TextBox _txtEqNivAli;
+        private readonly ComboBox _cmbFnNivAli;
 
         private readonly Func<string, bool> _dbEmUso;
         private readonly bool _editando;
@@ -28,7 +29,7 @@ namespace Genesis
             Opcoes = editar ?? new OpcoesAdensador { Db = sugestaoDb };
 
             Text = _editando ? "Reconfigurar Máquina: Adensador" : "Nova Máquina: Adensador";
-            Size = new Size(880, 780);
+            Size = new Size(920, 780);
             StartPosition = FormStartPosition.CenterParent;
             FormBorderStyle = FormBorderStyle.Sizable;
             MaximizeBox = false; MinimizeBox = false;
@@ -45,7 +46,6 @@ namespace Genesis
                 foreach (Control c in corpo.Controls) c.Width = w;
             };
 
-            // Dados Básicos
             var cardGeral = new CartaoTabela(2) { AutoSize = true, Margin = new Padding(0, 0, 0, 12) };
             cardGeral.ColumnStyles[0].Width = 180;
             _db = Tema.CaixaTexto(); _db.Text = Opcoes.Db;
@@ -56,12 +56,11 @@ namespace Genesis
             cardGeral.Controls.Add(EmoldurarDock(_desc), 1, 1);
             corpo.Controls.Add(cardGeral);
 
-            // Acionamentos
             var cardAcion = new CartaoTabela(2) { AutoSize = true, Margin = new Padding(0, 0, 0, 12) };
             cardAcion.ColumnStyles[0].Width = 180;
             string[] tipos = Gerador.NomesTiposPartida.Where(x => !x.StartsWith("Válvula")).ToArray();
             string[] tiposValv = Gerador.NomesTiposPartida.Where(x => x.StartsWith("Válvula")).ToArray();
-            string[] tiposNiv = { "Sensor nível baixo digital", "Sensor nível analógico" };
+            string[] tiposNiv = { "Sensor nível baixo digital", "Sensor nível alto digital", "Sensor nível analógico" };
             string[] tempos = { "Segundos", "Minutos", "Horas" };
 
             _cmbMot = CriarCombo(tipos, Opcoes.TipoMotor);
@@ -69,7 +68,6 @@ namespace Genesis
             cardAcion.Controls.Add(EmoldurarDock(_cmbMot), 1, 0);
             corpo.Controls.Add(cardAcion);
 
-            // Alimentação
             var cardAli = new CartaoTabela(2) { AutoSize = true, Margin = new Padding(0, 0, 0, 12) };
             cardAli.ColumnStyles[0].Width = 180;
             _chkAli = Tema.Marcador("Incluir Bomba de Alimentação"); _chkAli.Checked = Opcoes.TemBombaAlim;
@@ -79,12 +77,12 @@ namespace Genesis
 
             _chkNivAli = Tema.Marcador("Incluir Nível"); _chkNivAli.Checked = Opcoes.TemNivelAlim;
             _cmbTipoNivAli = CriarCombo(tiposNiv, Opcoes.TipoNivelAlim);
-            _txtTagNivAli = Tema.CaixaTexto(); _txtTagNivAli.Text = Opcoes.TagNivelAlim;
+            _txtEqNivAli = Tema.CaixaTexto(); _txtEqNivAli.Text = Opcoes.EqNivelAlim;
+            _cmbFnNivAli = CriarComboFn(Opcoes.FnNivelAlim);
             cardAli.Controls.Add(CriarLabel("Nível Alimentação"), 0, 1);
-            cardAli.Controls.Add(CriarLinhaNivel(_chkNivAli, _cmbTipoNivAli, _txtTagNivAli), 1, 1);
+            cardAli.Controls.Add(CriarLinhaNivelComFn(_chkNivAli, _cmbTipoNivAli, _txtEqNivAli, _cmbFnNivAli), 1, 1);
             corpo.Controls.Add(cardAli);
 
-            // Higienização
             var cardHig = new CartaoTabela(2) { AutoSize = true, Margin = new Padding(0, 0, 0, 12) };
             cardHig.ColumnStyles[0].Width = 180;
             _chkHig = Tema.Marcador("Incluir Bomba Higienização"); _chkHig.Checked = Opcoes.TemBombaHig;
@@ -116,16 +114,25 @@ namespace Genesis
 
         private Label CriarLabel(string txt) { return new Label { Text = txt, Font = Tema.Negrito, ForeColor = Tema.Texto, BackColor = Color.Transparent, AutoSize = true, Margin = new Padding(0, 10, 10, 10) }; }
         private Control EmoldurarDock(Control c) { var q = Tema.Emoldurar(c); q.Dock = DockStyle.Fill; q.Margin = new Padding(0, 4, 0, 4); return q; }
-        
-        private ComboBox CriarCombo(string[] itens, string selecionado) 
-        { 
-            var c = Tema.Lista(false); 
-            c.Items.AddRange(itens); 
-            c.SelectedItem = selecionado; 
-            if (c.SelectedIndex < 0 && c.Items.Count > 0) c.SelectedIndex = 0; 
-            c.DropDownWidth = 350; // Força o dropdown a abrir largo
-            c.MinimumSize = new Size(280, 28); // Força a caixa fechada a ser larga
-            return c; 
+
+        private ComboBox CriarCombo(string[] itens, string selecionado)
+        {
+            var c = Tema.Lista(false);
+            c.Items.AddRange(itens);
+            c.SelectedItem = selecionado;
+            if (c.SelectedIndex < 0 && c.Items.Count > 0) c.SelectedIndex = 0;
+            c.DropDownWidth = 350;
+            c.MinimumSize = new Size(280, 28);
+            return c;
+        }
+
+        private ComboBox CriarComboFn(string selecionado)
+        {
+            var c = Tema.Lista(true);
+            c.Items.AddRange(new object[] { "", "TBA", "TB1", "TB2", "TB3", "TAN", "TN1", "TN2", "TN3", "TAL", "TA1", "TA2", "TA3" });
+            c.Text = selecionado ?? "";
+            c.MinimumSize = new Size(80, 28);
+            return c;
         }
 
         private Control CriarLinhaBomba(CheckBox chk, ComboBox cmb)
@@ -140,19 +147,22 @@ namespace Genesis
             return p;
         }
 
-        private Control CriarLinhaNivel(CheckBox chk, ComboBox cmb, TextBox txtTag)
+        private Control CriarLinhaNivelComFn(CheckBox chk, ComboBox cmbTipo, TextBox txtEq, ComboBox cmbFn)
         {
-            var p = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 3, AutoSize = true, BackColor = Color.Transparent, Margin = new Padding(0, 4, 0, 4) };
+            var p = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 4, AutoSize = true, BackColor = Color.Transparent, Margin = new Padding(0, 4, 0, 4) };
             p.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 160));
             p.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            p.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 200)); // Aumentei para 200
+            p.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 90));
+            p.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 100));
 
             chk.Margin = new Padding(0, 8, 10, 0); p.Controls.Add(chk, 0, 0);
-            p.Controls.Add(EmoldurarDock(cmb), 1, 0);
-            p.Controls.Add(EmoldurarDock(txtTag), 2, 0);
+            p.Controls.Add(EmoldurarDock(cmbTipo), 1, 0);
+            p.Controls.Add(EmoldurarDock(txtEq), 2, 0);
+            p.Controls.Add(EmoldurarDock(cmbFn), 3, 0);
 
-            chk.CheckedChanged += delegate { cmb.Enabled = chk.Checked; txtTag.Enabled = chk.Checked; };
-            cmb.Enabled = chk.Checked; txtTag.Enabled = chk.Checked;
+            Action pintar = delegate { bool v = chk.Checked; cmbTipo.Enabled = v; txtEq.Enabled = v; cmbFn.Enabled = v; };
+            chk.CheckedChanged += delegate { pintar(); };
+            pintar();
             return p;
         }
 
@@ -174,11 +184,13 @@ namespace Genesis
 
         private void LerTela()
         {
-            Opcoes.Db = _db.Text.Trim().ToUpperInvariant(); 
+            Opcoes.Db = _db.Text.Trim().ToUpperInvariant();
             Opcoes.Descricao = _desc.Text.Trim();
             Opcoes.TipoMotor = Convert.ToString(_cmbMot.SelectedItem);
             Opcoes.TemBombaAlim = _chkAli.Checked; Opcoes.TipoBombaAlim = Convert.ToString(_cmbTipoAli.SelectedItem);
-            Opcoes.TemNivelAlim = _chkNivAli.Checked; Opcoes.TipoNivelAlim = Convert.ToString(_cmbTipoNivAli.SelectedItem); Opcoes.TagNivelAlim = _txtTagNivAli.Text.Trim();
+            Opcoes.TemNivelAlim = _chkNivAli.Checked; Opcoes.TipoNivelAlim = Convert.ToString(_cmbTipoNivAli.SelectedItem);
+            Opcoes.EqNivelAlim = _txtEqNivAli.Text.Trim().ToUpperInvariant();
+            Opcoes.FnNivelAlim = _cmbFnNivAli.Text.Trim().ToUpperInvariant();
             Opcoes.TemBombaHig = _chkHig.Checked; Opcoes.TipoBombaHig = Convert.ToString(_cmbTipoHig.SelectedItem);
             Opcoes.TemValvulaHig = _chkVhi.Checked; Opcoes.TipoValvulaHig = Convert.ToString(_cmbTipoVhi.SelectedItem);
             Opcoes.TemIntermitenteHig = _chkIntermitenteHig.Checked; Opcoes.TempoLigadoHig = Convert.ToString(_cmbLigHig.SelectedItem); Opcoes.TempoDesligadoHig = Convert.ToString(_cmbDesHig.SelectedItem);
@@ -190,7 +202,6 @@ namespace Genesis
             string db = Opcoes.Db;
             if (!System.Text.RegularExpressions.Regex.IsMatch(db, "^[A-Z][A-Z0-9_]*$")) { Dialogo.Aviso(this, "DB inválido."); return; }
             if (_dbEmUso(db) && !_editando) { Dialogo.Aviso(this, "DB já em uso."); return; }
-
             DialogResult = DialogResult.OK;
         }
 

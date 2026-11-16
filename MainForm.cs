@@ -1535,19 +1535,73 @@ namespace Genesis
             }
         }
 
-        private static void PreencherAutomaticos(Partida p)
+                
+
+                private void NormalizarNiveis()
+        {
+            var todas = _partidas.Concat(_sensores).Concat(_pids).Cast<Partida>().ToList();
+            List<Partida> ajustadas;
+            var avisos = Genesis.Fabricas.FabricaPartida.NormalizarNiveisDuplicados(todas, out ajustadas);
+
+            if (avisos.Count == 0) return;
+
+            _carregando = true;
+            try
+            {
+                foreach (var p in ajustadas) PreencherAutomaticos(p, true);
+            }
+            finally { _carregando = false; }
+
+            ReligarTags();
+            foreach (Cadastro c in new[] { _cadPart, _cadSen, _cadPid }) MontarEditor(c, true);
+            AoMudarDados();
+
+            string lista = string.Join("\n", avisos.Take(15).ToArray());
+            if (avisos.Count > 15) lista += "\n... e mais " + (avisos.Count - 15);
+
+            Action oferta = delegate
+            {
+                Dialogo.Info(this,
+                    "Encontramos " + ajustadas.Count + " sensor(es) com nome duplicado no projeto.\n\n"
+                    + "Os sensores foram renomeados automaticamente:\n\n"
+                    + lista
+                    + "\n\nOs intertravamentos que usavam esses sensores foram atualizados.\n\n"
+                    + "⚠ SUGERIMOS GERAR TUDO NOVAMENTE no TIA Portal para aplicar as novas tags.");
+            };
+
+            if (IsHandleCreated && Visible) BeginInvoke(oferta);
+            else
+            {
+                EventHandler uma = null;
+                uma = delegate { Shown -= uma; BeginInvoke(oferta); };
+                Shown += uma;
+            }
+
+            _modificado = true;
+            AtualizarTitulo();
+        }
+
+
+                private static void PreencherAutomaticos(Partida p)
+        {
+            PreencherAutomaticos(p, false);
+        }
+
+        private static void PreencherAutomaticos(Partida p, bool forcar)
         {
             if (p == null || !NomeCompleto(p)) return;
             Gerador.TipoPartida tp = Gerador.BuscarTipo(p.Tipo);
             if (!Gerador.EhSensor(p) && !Gerador.EhPid(p) && (tp == null || !tp.MaquinaSis))
             {
-                if (Vazio(p.TagDef)) p.TagDef = AutoDef(p);
-                if (!Vazio(p.TagProtecao) && Vazio(p.TagProtecaoMem)) p.TagProtecaoMem = AutoPrt(p);
+                if (forcar || Vazio(p.TagDef)) p.TagDef = AutoDef(p);
+                if (!Vazio(p.TagProtecao) && (forcar || Vazio(p.TagProtecaoMem))) p.TagProtecaoMem = AutoPrt(p);
             }
             foreach (var par in NomesAutomaticosIo(p))
             {
                 PropertyInfo pi = typeof(Partida).GetProperty(par.Key);
-                if (pi != null && Vazio(Convert.ToString(pi.GetValue(p, null)))) pi.SetValue(p, par.Value, null);
+                if (pi == null) continue;
+                string atual = Convert.ToString(pi.GetValue(p, null) ?? "");
+                if (forcar || Vazio(atual)) pi.SetValue(p, par.Value, null);
             }
         }
 
@@ -3066,6 +3120,8 @@ namespace Genesis
             _modificado = false;
             AtualizarTitulo();
             if (_sensores.Count > 0 && NomesAntigosDeSensores().Count > 0) OferecerNomesCompletosDeSensores();
+                        // Normaliza níveis duplicados (TBA → TB1, TB2...) e sugere regerar
+            NormalizarNiveis();
         }
 
         /// <summary>Avisa a grade das tags de que a lista mudou inteira.</summary>
@@ -3691,10 +3747,13 @@ namespace Genesis
             return NovaPagina("Máquinas", "Escopos completos · partidas e sensores que trabalham juntos",
                 "Escolha uma máquina do catálogo: ela cria de uma vez todas as partidas e sensores com a nomenclatura padrão, "
                 + "e na geração entram também o bloco da máquina e o automático. Depois é só preencher as tags nas páginas Partidas e Sensores.",
-                new Control[] { Tema.Botao("Configurar padrões", false, delegate { using (var f = new CatalogoMaquinasForm()) if (f.ShowDialog(this) == DialogResult.OK) Log("Catálogo de máquinas atualizado. Novos flotadores usarão os padrões salvos."); }, "config") }, host);
+                new Control[] { 
+                Tema.Botao("Configurar padrões", false, delegate { using (var f = new CatalogoMaquinasForm()) if (f.ShowDialog(this) == DialogResult.OK) Log("Catálogo de máquinas atualizado."); }, "config"),
+                Tema.Botao("Normalizar níveis", false, delegate { NormalizarNiveis(); }, "organizar")
+            }, host);
         }
 
-        private void AtualizarMaquinas()
+                private void AtualizarMaquinas()
         {
             if (_listaMaquinas == null) return;
             _listaMaquinas.Controls.Clear();
@@ -3728,9 +3787,11 @@ namespace Genesis
                 };
                 c.Height = pdl.Bottom + 26;
                 
-                string receitaSub = itens.FirstOrDefault(x => !string.IsNullOrEmpty(x.Subsistema) && x.Subsistema == id)?.Receita;
+                // AQUI ESTAVA O PROBLEMA: Agora busca ignorando maiúsculas/minúsculas e prioriza o Subsistema
+                string receitaSub = itens.FirstOrDefault(x => !string.IsNullOrEmpty(x.Subsistema) && string.Equals(x.Subsistema, id, StringComparison.OrdinalIgnoreCase))?.Receita;
                 string receitaNome = receitaSub ?? itens.Select(x => x.Receita).FirstOrDefault(r => !string.IsNullOrEmpty(r));
                 string receita = receitaNome ?? Maquinas.Preparador;
+                
                 if (sis == null) titulo = receita;
                 t.Text = id + "  ·  " + titulo;
                 
@@ -3760,24 +3821,22 @@ namespace Genesis
             }
         }
 
-        private void ReconfigurarReceita(string id)
+                private void ReconfigurarReceita(string id)
         {
-            // Procura os itens da máquina E os itens do subsistema (para achar periféricos)
             var itens = _partidas.Concat(_sensores).Concat(_pids)
                 .Where(x => string.Equals(x.Maquina, id, StringComparison.OrdinalIgnoreCase) || 
                             string.Equals(x.Subsistema, id, StringComparison.OrdinalIgnoreCase)).ToList();
             
             if (itens.Count == 0) return;
             
-            // Tenta achar a receita: primeiro olha se é um subsistema, senão pega a receita da máquina
+            // Busca pela receita do subsistema primeiro. Se não achar, pega a da máquina.
             string receitaSub = itens.FirstOrDefault(x => !string.IsNullOrEmpty(x.Subsistema) && string.Equals(x.Subsistema, id, StringComparison.OrdinalIgnoreCase))?.Receita;
             string receitaNome = receitaSub ?? itens.Select(x => x.Receita).FirstOrDefault(r => !string.IsNullOrEmpty(r));
             
             IReceitaMaquina receita = ReceitaRegistry.PorNome(receitaNome) ?? ReceitaRegistry.PorId(receitaNome);
             if (receita == null)
             {
-                Dialogo.Aviso(this, "A máquina " + id + " foi criada com uma receita que não está mais registrada ("
-                    + (receitaNome ?? "?") + "). Não é possível reconfigurá-la automaticamente.");
+                Dialogo.Aviso(this, "A máquina/subsistema " + id + " foi criada com uma receita que não está mais registrada (" + (receitaNome ?? "?") + ").");
                 return;
             }
 
@@ -3796,20 +3855,14 @@ namespace Genesis
                 Func<List<Partida>, bool> confirmar = delegate (List<Partida> removidas)
                 {
                     string lista = string.Join(", ", removidas.Select(x => x.Sub + "." + x.Eq + "." + x.Fn).ToArray());
-                    return _confirmar("Estes itens deixam de existir e serão apagados (com as tags que já preencheu neles):\n\n"
-                        + lista + "\n\nContinuar?");
+                    return _confirmar("Estes itens deixam de existir e serão apagados:\n\n" + lista + "\n\nContinuar?");
                 };
 
                 _carregando = true;
                 ResultadoAplicacao res;
-                try
-                {
-                    res = AplicadorPlano.Aplicar(receita, plano, confirmar, listas, _ios, PreencherAutomaticos);
-                }
-                finally
-                {
-                    _carregando = false;
-                }
+                try { res = AplicadorPlano.Aplicar(receita, plano, confirmar, listas, _ios, PreencherAutomaticos); }
+                finally { _carregando = false; }
+                
                 if (res.CanceladoPeloUsuario) return;
 
                 if (_maqAtual == plano.IdAntigo && plano.Renomeia) _maqAtual = plano.IdNovo;
@@ -3818,8 +3871,6 @@ namespace Genesis
                 AoMudarDados();
                 AtualizarMaquinas();
                 Log("Máquina/Subsistema " + plano.IdNovo + " reconfigurado: " + res.Resumo());
-                if (plano.Renomeia)
-                    Log("AVISO: o DB " + plano.IdAntigo + " que já foi gerado no TIA continua lá; apague-o (e a FC antiga) se não for mais usar. Gere a máquina de novo para criar o " + plano.IdNovo + ".");
             }
         }
 

@@ -206,6 +206,12 @@ namespace Genesis
         /// <summary>Papel na maquina (SIS, ROS, AG1, AG2, EAG, VAZ, NBA, NAL, NAN, NPO).</summary>
         public string Papel { get; set; } = "";
 
+                /// <summary>
+        /// Fn manual do nível (ex: TB1, TAN). Vazio = automático (calculado pelo sistema).
+        /// Quando preenchido, o normalizador respeita e não renomeia.
+        /// </summary>
+        public string FnNivel { get; set; } = "";
+
         /// <summary>Receita que criou a linha (Preparador de polimero, Flotador...); vazio em projetos antigos.</summary>
         public string Receita { get; set; } = "";
 
