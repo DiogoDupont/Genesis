@@ -3419,6 +3419,11 @@ namespace Genesis
             Gerar(soSelecionadas, false);
         }
 
+        private void GerarSoMain()
+        {
+            Gerar(false, false, null, true);
+        }
+
         private void Gerar(bool soSelecionadas, bool soComunicacao)
         {
             Gerar(soSelecionadas, soComunicacao, null);
@@ -3464,7 +3469,8 @@ namespace Genesis
             ReligarTags();
         }
 
-        private async void Gerar(bool soSelecionadas, bool soComunicacao, List<Partida> forcadas)
+        private async void Gerar(bool soSelecionadas, bool soComunicacao, List<Partida> forcadas, bool soMain = false)
+        
         {
             FinalizarEdicao();
             LerConfigDaTela();
@@ -3546,6 +3552,7 @@ namespace Genesis
                 var gerador = new Gerador(Log);
                 gerador.AoCriarTags = delegate (List<Io> novas) { BeginInvoke(new Action(delegate { ReceberTags(novas); })); };
                 gerador.SoComunicacao = soComunicacao;
+                gerador.SoMain = soMain;
                 ok = await Task.Run(() => gerador.Executar(ios, partidas, selecionadas));
             }
             catch (Exception ex)

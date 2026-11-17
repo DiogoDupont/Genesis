@@ -12,10 +12,10 @@ namespace Genesis
     // ===================================================================
     internal partial class MainForm
     {
-        private enum Escopo { Tudo, Marcados, Modbus, Maquina }
+        private enum Escopo { Tudo, Marcados, Modbus, Maquina, Main }
 
         private Escopo _escopo = Escopo.Tudo;
-        private OpcaoCartao _opTudo, _opMarcados, _opModbus, _opMaquina;
+        private OpcaoCartao _opTudo, _opMarcados, _opModbus, _opMaquina, _opMain;
         private Panel _listaConferencia;
         private Label _lblResultado, _lblPorque;
         private Button _btnGerarAgora;
@@ -49,8 +49,11 @@ namespace Genesis
             _opModbus = new OpcaoCartao("Só a comunicação Modbus",
                 "Recria o DB do mapa com os registros atuais e refaz a FC de comando remoto. As partidas não são alteradas.")
             { Aviso = "Se o mapa mudou, avise a equipe do supervisório." };
-            var opcoes = new[] { _opTudo, _opMarcados, _opMaquina, _opModbus };
-            var escopos = new[] { Escopo.Tudo, Escopo.Marcados, Escopo.Maquina, Escopo.Modbus };
+            _opMain = new OpcaoCartao("Só o Main (OB123)",
+                "Gera apenas o bloco Main (OB123) e o DB GER com as chamadas das FCs e a lógica de Fim de Expediente. Não altera as FCs das partidas.")
+            { Aviso = "Rápido e seguro. Use quando só mudou a lista de máquinas ou os botões de tela." };
+            var opcoes = new[] { _opTudo, _opMarcados, _opMaquina, _opModbus, _opMain };
+            var escopos = new[] { Escopo.Tudo, Escopo.Marcados, Escopo.Maquina, Escopo.Modbus, Escopo.Main };
             for (int i = 0; i < opcoes.Length; i++)
             {
                 Escopo e = escopos[i];
@@ -103,7 +106,7 @@ namespace Genesis
             int larg = Math.Max(300, _colunaGerar.Width - SystemInformation.VerticalScrollBarWidth - 4);
             int dx = _colunaGerar.AutoScrollPosition.X, dy = _colunaGerar.AutoScrollPosition.Y;
             int y = 16 + 22 + 14;
-            foreach (OpcaoCartao o in new[] { _opTudo, _opMarcados, _opMaquina, _opModbus })
+            foreach (OpcaoCartao o in new[] { _opTudo, _opMarcados, _opMaquina, _opModbus, _opMain })
             {
                 if (!o.Visible) continue;
                 o.Width = larg - 22 - 18;
@@ -135,6 +138,7 @@ namespace Genesis
             {
                 case Escopo.Marcados: Gerar(true, false, null); break;
                 case Escopo.Modbus: Gerar(false, true, null); break;
+                case Escopo.Main: GerarSoMain(); break;
                 case Escopo.Maquina:
                     Gerar(true, false, ItensDaMaquina(_maqAtual).Where(x => !PartidaVazia(x)).ToList());
                     break;
@@ -247,6 +251,7 @@ namespace Genesis
                 _opMarcados.Marcada = _escopo == Escopo.Marcados;
                 _opMaquina.Marcada = _escopo == Escopo.Maquina;
                 _opModbus.Marcada = _escopo == Escopo.Modbus;
+                _opMain.Marcada = _escopo == Escopo.Main;
                 ArrumarGerar();
                 foreach (OpcaoCartao o in new[] { _opTudo, _opMarcados, _opMaquina, _opModbus }) o.Invalidate();
 
@@ -373,6 +378,7 @@ namespace Genesis
                 _btnGerarAgora.Enabled = porque.Length == 0;
                 _btnGerarAgora.Text = _escopo == Escopo.Marcados ? "Gerar " + Plural(marcados.Count, "item marcado", "itens marcados")
                     : _escopo == Escopo.Modbus ? "Gerar a comunicação Modbus"
+                    : _escopo == Escopo.Main ? "Gerar apenas o Main (OB123)"
                     : _escopo == Escopo.Maquina ? "Gerar a máquina " + _maqAtual
                     : "Gerar tudo no TIA Portal";
                 _lblPorque.Text = porque.Length > 0 ? porque : "Antes de gerar, o " + App.Nome + " ainda pede uma confirmação.";

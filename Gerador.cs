@@ -809,7 +809,25 @@ namespace Genesis
                     return false;
                 }
 
-                // versao de cada FB que existe no projeto (ex.: BL_VALVULA_6 no lugar de BL_VALVULA_5)
+                // --- INÍCIO DO BLOCO SO MAI ---
+                if (SoMain)
+                {
+                    PlcBlockUserGroup grupo = plc.BlockGroup.Groups.Find(NomeGrupo) ?? plc.BlockGroup.Groups.Create(NomeGrupo);
+                    try
+                    {
+                        GerarMain(plc, grupo, partidas, ios, Path.GetTempPath());
+                        Log("CONCLUIDO sem erros.");
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Log("ERRO ao gerar Main: " + DetalheErro(ex));
+                        return false;
+                    }
+                }
+                // --- FIM DO BLOCO SO MAIN ---
+
+                // versao de cada FB que existe no projeto
                 if (!ResolverFbs(plc, fbsNecessarios)) return false;
                 fbsNecessarios = fbsNecessarios.Select(FbReal).Distinct().ToList();
 
@@ -886,7 +904,7 @@ namespace Genesis
 
                 if (selecionadas != null)
                 {
-                    return ExecutarSelecionadas(plc, partidas, selecionadas, templates, usar);
+                    return ExecutarSelecionadas(plc, partidas, selecionadas, templates, usar, ios);
                 }
 
                 // 4) Gera XMLs
@@ -982,7 +1000,9 @@ namespace Genesis
 
                     // mapa Modbus (DB COM + FC de mapeamento), com todas as partidas
                     if (!GerarComunicacao(plc, grupo, partidas, existe, pastaExport, saida)) tudoOk = false;
-
+                    // Gera o Main (OB123) e o DB GER
+                    try { GerarMain(plc, grupo, partidas, ios, saida); }
+                    catch (Exception ex) { Log("ERRO ao gerar Main (OB123): " + DetalheErro(ex)); tudoOk = false; }
                     // PIDs direto no OB ciclico (OB30)
                     if (Cfg.PidNoOb && partidas.Any(EhPid))
                     {
@@ -3495,6 +3515,18 @@ namespace Genesis
                 return call;
             }
 
+            /// <summary>Chamada de uma FC (sem instância de DB).</summary>
+            public int ChamadaFc(string fc)
+            {
+                int call = _uid++;
+                _partes.AppendLine("<Call UId=\"" + call + "\">");
+                _partes.AppendLine("<CallInfo Name=\"" + fc + "\" BlockType=\"FC\">");
+                _partes.AppendLine("</CallInfo>");
+                _partes.AppendLine("</Call>");
+                _ligados[call] = new HashSet<string>();
+                return call;
+            }
+
             public void Entrada(int call, string pino, string origem)
             {
                 Fio(origem, Pino(call, pino));
@@ -3886,7 +3918,7 @@ namespace Genesis
         // ===================================================================
         private bool ExecutarSelecionadas(
             PlcSoftware plc, List<Partida> partidas, List<Partida> selecionadas,
-            Dictionary<string, string> templates, Func<string, bool> existe)
+            Dictionary<string, string> templates, Func<string, bool> existe, List<Io> ios)
         {
             LimparXmlAntigos();
             string saida = Path.Combine(Path.GetTempPath(), "Genesis",
@@ -3952,6 +3984,9 @@ namespace Genesis
                         try
                         {
                             if (!GerarComunicacao(plc, grupo, partidas, existe, null, saida)) tudoOk = false;
+                            // Gera o Main (OB123) e o DB GER             
+                            try { GerarMain(plc, grupo, partidas, ios, saida); }
+                            catch (Exception ex) { Log("ERRO ao gerar Main (OB123): " + DetalheErro(ex)); }
                         }
                         catch (Exception ex)
                         {

@@ -197,6 +197,9 @@ namespace Genesis
         /// <summary>Maquina a que pertence (id = DB da maquina, ex.: PP1); vazio = partida avulsa ou periférico.</summary>
         public string Maquina { get; set; } = "";
 
+        /// <summary>Tela da IHM a que esta partida pertence (ex: TL1, TL2). Usada no Fim de Expediente.</summary>
+        public string Tela { get; set; } = "TL1";
+
         /// <summary>
         /// Subsistema a que pertence (id = DB do subsistema, ex.: FL1); vazio = avulsa ou standalone.
         /// Uma partida dentro de um subsistema pode ter Maquina (se veio de máquina incluída) ou não (periférico).
