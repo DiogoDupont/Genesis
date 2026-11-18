@@ -857,6 +857,7 @@ namespace Genesis
                 }
 
                 // 3) Tags de PLC (antes: endereco %M para as memorias de defeito que ainda nao tem)
+                AlocarEmergencia(plc, ios);
                 AlocarDefeitos(plc, partidas, selecionadas ?? partidas, ios);
                 AlocarAuxiliares(plc, selecionadas ?? partidas, ios);
                 PrepararTagsComunicacao(plc, partidas, ios);
@@ -1110,6 +1111,70 @@ namespace Genesis
                 if (TemExaustor(p)) add(TagDefExa(todas, p), "DEFEITO EXAUSTOR " + d);
             }
             return lista;
+        }
+
+        /// <summary>Nome da tag de emergencia geral (mesmo criterio do Main).</summary>
+        private static string TagEmergenciaEfetiva()
+        {
+            return string.IsNullOrWhiteSpace(Cfg.TagEmergencia) ? "SIS_EME_GER_ACL_CNF" : Cfg.TagEmergencia.Trim();
+        }
+
+        /// <summary>
+        /// Garante a memoria da emergencia geral na lista de tags: se nao existe no PLC nem tem endereco na aba Tags,
+        /// ganha o bit .0 do byte de Cfg.InicioDefeitos (502.0; o 502.1 em diante e dos defeitos).
+        /// </summary>
+        private void AlocarEmergencia(PlcSoftware plc, List<Io> ios)
+        {
+            string nome = TagEmergenciaEfetiva();
+            var noPlc = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            ColetarTags(plc.TagTableGroup, noPlc);
+            if (noPlc.Contains(nome)) return;
+
+            Io io = ios.FirstOrDefault(x => string.Equals((x.Nome ?? "").Trim(), nome, StringComparison.OrdinalIgnoreCase));
+            if (io != null && !string.IsNullOrWhiteSpace(io.Numero)) return;   // ja tem endereco: o CriarTags cria
+
+            Match mi = RxBitM.Match("M" + (Cfg.InicioDefeitos ?? "").Trim());
+            string numero = (mi.Success ? mi.Groups[1].Value : "502") + ".0";
+
+            bool nova = io == null;
+            if (nova)
+            {
+                io = new Io { Nome = nome, Area = "MEM", Numero = numero, Tipo = "Bool", Descricao = Textos.Padrao("EMERGÊNCIA GERAL") };
+                ios.Add(io);
+            }
+            else
+            {
+                io.Area = "MEM";
+                io.Numero = numero;
+                io.Tipo = "Bool";
+                if (string.IsNullOrWhiteSpace(io.Descricao)) io.Descricao = Textos.Padrao("EMERGÊNCIA GERAL");
+            }
+            Log("Emergencia geral: endereco automatico %M" + numero + "  " + nome);
+            if (AoCriarTags != null && nova) AoCriarTags(new List<Io> { io });
+        }
+
+        /// <summary>Cria a tag de emergencia no PLC se ainda nao existir (usado tambem quando so o Main e gerado).</summary>
+        private void GarantirTagEmergencia(PlcSoftware plc, List<Io> ios)
+        {
+            AlocarEmergencia(plc, ios);
+
+            string nome = TagEmergenciaEfetiva();
+            var noPlc = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            ColetarTags(plc.TagTableGroup, noPlc);
+            if (noPlc.Contains(nome)) return;
+
+            Io io = ios.FirstOrDefault(x => string.Equals((x.Nome ?? "").Trim(), nome, StringComparison.OrdinalIgnoreCase));
+            if (io == null || string.IsNullOrWhiteSpace(io.Numero)) return;
+            try
+            {
+                PlcTagTable tabela = plc.TagTableGroup.TagTables.Find(NomeGrupo) ?? plc.TagTableGroup.TagTables.Create(NomeGrupo);
+                tabela.Tags.Create(io.Nome, io.Tipo, io.Endereco);
+                Log("Tag criada: " + io.Nome + " (" + io.Endereco + ")");
+            }
+            catch (Exception ex)
+            {
+                Log("FALHA ao criar tag " + io.Nome + ": " + PrimeiraLinha(ex));
+            }
         }
 
         private static readonly Regex RxBitM = new Regex(@"^%?M(\d+)\.([0-7])$", RegexOptions.IgnoreCase);
@@ -1500,7 +1565,8 @@ namespace Genesis
                 {
                     Conferir(id, "sensor da pa do lado direito (SEN_LEI_DIR)", p.TagSensor, "Bool", existe);
                     Conferir(id, "sensor da pa do lado esquerdo (SEN_LEI_LES)", p.TagSensor2, "Bool", existe);
-                    Conferir(id, "confirmacao da partida do raspador (MOT_LEI_CNF)", p.TagConf, "Bool", existe);
+                    if (RaspadorDoSensor(p) == null)
+                        Conferir(id, "confirmacao da partida do raspador (MOT_LEI_CNF)", p.TagConf, "Bool", existe);
                     Declarar(p.TagDefDireito, "Bool", existe);
                     Declarar(p.TagDefEsquerdo, "Bool", existe);
                     continue;
@@ -2572,6 +2638,16 @@ namespace Genesis
             return Embrulhar(r, p.Descricao);
         }
 
+        /// <summary>Partida do raspador (SUB.RAS.MOT) do sensor de pas (SEN.SUB.RAS); null se nao houver.</summary>
+        private Partida RaspadorDoSensor(Partida sensor)
+        {
+            if (_todas == null) return null;
+            return _todas.FirstOrDefault(x => !EhSensor(x)
+                && string.Equals(x.Sub, sensor.Eq, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(x.Eq, "RAS", StringComparison.OrdinalIgnoreCase)
+                && string.Equals(x.Fn, "MOT", StringComparison.OrdinalIgnoreCase));
+        }
+
         /// <summary>
         /// Pas do raspador do flotador (como no SENSORES do projeto):
         ///  BL_SENSOR_RASPADOR: sensores direito/esquerdo (DI), libera operacao (CMD_LOP), reset geral,
@@ -2594,7 +2670,17 @@ namespace Genesis
             r.Entrada(call, "SIS_CMD_RST", existe(Cfg.TagReset)
                 ? tag(Cfg.TagReset)
                 : Rede.Ident(r.Acesso("LIT|Bool|false")));
-            if (existe(p.TagConf)) r.Entrada(call, "MOT_LEI_CNF", tag(p.TagConf));
+            // MOT_LEI_CNF: a mesma confirmacao que vai no MOT_LEI_CN1 da partida do raspador (SUB.RAS.MOT)
+            Partida ras = RaspadorDoSensor(p);
+            TipoPartida tRas = ras == null ? null : BuscarTipo(ras.Tipo);
+            if (ras != null && tRas != null)
+            {
+                string br = Cfg.Prefixo + ras.Sub + "." + ras.Eq + "." + ras.Fn + ".";
+                if (tRas.Bypass) LigarCnBypass(r, call, "MOT_LEI_CNF", br, "CMD_LO1");
+                else if (tRas.Drive) r.Entrada(call, "MOT_LEI_CNF", Rede.Ident(r.Acesso("SYM|" + br + "LEI_HAB")));
+                else if (existe(ras.TagConf)) r.Entrada(call, "MOT_LEI_CNF", tag(ras.TagConf));
+            }
+            else if (existe(p.TagConf)) r.Entrada(call, "MOT_LEI_CNF", tag(p.TagConf));
             r.Entrada(call, "SEN_SET_TPD", campo("SET_TPD"));
             r.Entrada(call, "SEN_SET_TPE", campo("SET_TPE"));
             r.Saida(call, "LDI_LEI_TPO", campo("LEI_TPD"));
@@ -3333,6 +3419,13 @@ namespace Genesis
                     _acessos.AppendLine("<Access Scope=\"LocalVariable\" UId=\"" + u + "\"><Symbol>"
                         + "<Component Name=\"" + SecurityElement.Escape(x[1]) + "\" /></Symbol></Access>");
                 }
+                else if (x[0] == "TAG")
+                {
+                    // tag do PLC com o nome inteiro em um so componente (nome com ponto, ex.: Clock_0.625Hz,
+                    // que o SYM quebraria em DB + membro)
+                    _acessos.AppendLine("<Access Scope=\"GlobalVariable\" UId=\"" + u + "\"><Symbol>"
+                        + "<Component Name=\"" + SecurityElement.Escape(x[1]) + "\" /></Symbol></Access>");
+                }
                 else if (x[0] == "SYM")
                 {
                     _acessos.Append("<Access Scope=\"GlobalVariable\" UId=\"" + u + "\"><Symbol>");
@@ -3366,6 +3459,18 @@ namespace Genesis
                         + "<ConstantValue>" + x[2] + "</ConstantValue></Constant></Access>");
                 }
                 return u;
+            }
+
+            /// <summary>Contato de uma tag do PLC cujo nome pode ter ponto (nao e caminho de DB).</summary>
+            public int ContatoTag(string nome, bool negado)
+            {
+                int a = Acesso("TAG|" + nome);
+                int c = _uid++;
+                _partes.AppendLine(negado
+                    ? "<Part Name=\"Contact\" UId=\"" + c + "\"><Negated Name=\"operand\" /></Part>"
+                    : "<Part Name=\"Contact\" UId=\"" + c + "\" />");
+                Fio(Ident(a), Pino(c, "operand"));
+                return c;
             }
 
             public int Contato(string simbolo, bool negado)

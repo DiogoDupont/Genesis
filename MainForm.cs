@@ -50,7 +50,7 @@ namespace Genesis
         private FlowLayoutPanel _resumoModbus;
         private Label _avisoModbus;
         private TextBox _txtComDb, _txtComNum, _txtStatusWord, _txtIniStatus, _txtPrimeiroCiclo, _txtIniAux;
-        private TextBox _txtMbInst, _txtMbCon, _txtMbIface, _txtMbPorta, _txtClock;
+        private TextBox _txtMbInst, _txtMbCon, _txtMbIface, _txtMbPorta, _txtClock, _txtClockPisca;
         private TextBox _txtPadraoConf, _txtPadraoHab, _txtPadraoHabInv, _txtPadraoHabSoft, _txtPadraoHabBomba1, _txtPadraoHabBomba2;
         private TextBox _txtPadraoDef, _txtPadraoMedidor, _txtPadraoTotalizador, _txtPadraoChave, _txtPadraoChaveMovimento;
         private CheckBox _chkCom, _chkComRecriar, _chkPidNoOb;
@@ -1329,9 +1329,33 @@ namespace Genesis
             return sb.ToString().Trim('_');
         }
 
+        /// <summary>
+        /// Descricao que entra no nome das tags. Itens do preparador ("PREPARADOR DE POLÍMERO 1 - ROSCA") ficam
+        /// "funcao + preparador, sem o DE": ROSCA PREPARADOR POLIMERO 1; a palavra TANQUE sai (NÍVEL TANQUE vira NIVEL; NÍVEL BAIXO TANQUE vira NIVEL_BAIXO).
+        /// </summary>
+        // true so enquanto se calcula o nome antigo (ordem e "DE" de antes), para reconhecer tags automaticas antigas
+        private static bool _nomesAntigosPreparador;
+
+        private static string SemDe(string t)
+        {
+            return _nomesAntigosPreparador ? t : Regex.Replace(t ?? "", @"\bDE\b", " ", RegexOptions.IgnoreCase);
+        }
+
+        private static string DescricaoParaNome(Partida p)
+        {
+            string desc = p.Descricao ?? "";
+            if (_nomesAntigosPreparador || !Maquinas.EhPreparador(p)) return desc;
+            int i = desc.IndexOf(" - ", StringComparison.Ordinal);
+            if (i <= 0) return desc;
+            string func = LimparNomeTag(SemDe(desc.Substring(i + 3)));
+            string prep = SemDe(desc.Substring(0, i));
+            func = Regex.Replace(func, @"(^|_)TANQUE(?=_|$)", "").Trim('_');   // NIVEL_TANQUE -> NIVEL; NIVEL_BAIXO_TANQUE -> NIVEL_BAIXO
+            return ColapsarRepetidas(LimparNomeTag(func + " " + prep)).Replace('_', ' ');
+        }
+
         private static string MontarPadraoIo(string modelo, Partida p)
         {
-            string desc = LimparNomeTag(p.Descricao);
+            string desc = LimparNomeTag(DescricaoParaNome(p));
             string valor = (modelo ?? "").Replace("{DESC}", desc)
                 .Replace("{SUB}", LimparNomeTag(p.Sub)).Replace("{EQ}", LimparNomeTag(p.Eq))
                 .Replace("{FN}", LimparNomeTag(p.Fn));
@@ -1391,7 +1415,7 @@ namespace Genesis
                 {
                     if (!legado && t.SenVazao && Maquinas.EhPreparador(p) && p.Papel == Maquinas.PapelVazao)
                     {
-                        string maquina = LimparNomeTag(Regex.Replace(p.Descricao ?? "", @"\s*-\s*.*$", ""));
+                        string maquina = LimparNomeTag(SemDe(Regex.Replace(p.Descricao ?? "", @"\s*-\s*.*$", "")));   // sem o "DE"
                         nomes["TagSensor"] = ColapsarRepetidas("MEDIDOR_DE_VAZAO_" + maquina);
                     }
                     else
@@ -1416,7 +1440,7 @@ namespace Genesis
                         if (Maquinas.EhPreparador(p) &&
                             (p.Papel == Maquinas.PapelNivBaixo || p.Papel == Maquinas.PapelNivAlto || p.Papel == Maquinas.PapelNivPolimero))
                         {
-                            string maquina = LimparNomeTag(Regex.Replace(p.Descricao ?? "", @"\s*-\s*.*$", ""));
+                            string maquina = LimparNomeTag(SemDe(Regex.Replace(p.Descricao ?? "", @"\s*-\s*.*$", "")));   // sem o "DE"
                             string complemento = p.Papel == Maquinas.PapelNivPolimero
                                 ? "SILO_POLIMERO_" + maquina
                                 : maquina;
@@ -1481,6 +1505,54 @@ namespace Genesis
                 }
             }
             return lista;
+        }
+
+        /// <summary>Tags do preparador que ainda estao com o nome automatico de antes (preparador na frente, com "DE"): (linha, campo, nome antigo, nome novo).</summary>
+        private List<Tuple<Partida, string, string, string>> NomesAntigosDoPreparador()
+        {
+            var lista = new List<Tuple<Partida, string, string, string>>();
+            foreach (Partida p in _partidas.Concat(_sensores).Where(x => Maquinas.EhPreparador(x)).ToList())
+            {
+                Dictionary<string, string> velhos;
+                _nomesAntigosPreparador = true;
+                try { velhos = NomesAutomaticosIo(p, false); }
+                finally { _nomesAntigosPreparador = false; }
+                foreach (var par in NomesAutomaticosIo(p, false))
+                {
+                    string velho;
+                    if (!velhos.TryGetValue(par.Key, out velho) || string.Equals(velho, par.Value, StringComparison.Ordinal)) continue;
+                    PropertyInfo pi = typeof(Partida).GetProperty(par.Key);
+                    if (pi == null) continue;
+                    string atual = Convert.ToString(pi.GetValue(p, null) ?? "");
+                    if (string.Equals(atual, velho, StringComparison.OrdinalIgnoreCase))
+                        lista.Add(Tuple.Create(p, par.Key, atual, par.Value));
+                }
+            }
+            return lista;
+        }
+
+        /// <summary>Ao abrir um projeto com preparador no nome antigo, oferece trocar para "funcao + preparador".</summary>
+        private void OferecerNomesDoPreparador()
+        {
+            Action oferta = delegate
+            {
+                var trocas = NomesAntigosDoPreparador();
+                if (trocas.Count == 0) return;
+                if (!_confirmar("Os nomes automáticos das tags do preparador agora começam pela função (ex.: HAB_AGITADOR_2_PREPARADOR_POLIMERO), sem o \"DE\".\n\n"
+                    + "Este projeto tem " + trocas.Count + " tag(s) do preparador no nome antigo. Trocar agora?\n\n"
+                    + "Endereços e descrições das tags são mantidos. As tags antigas que já foram geradas no TIA continuam lá; a próxima geração cria as novas.")) return;
+                int n = AtualizarNomesDeSensores(trocas);
+                Log("Tags do preparador atualizadas para o novo nome: " + n + ".");
+                _modificado = true;
+                AtualizarTitulo();
+            };
+            if (IsHandleCreated && Visible) BeginInvoke(oferta);
+            else
+            {
+                EventHandler uma = null;
+                uma = delegate { Shown -= uma; BeginInvoke(oferta); };
+                Shown += uma;
+            }
         }
 
         /// <summary>Troca as tags automaticas antigas dos sensores pelo nome completo (a tag da aba Tags tambem muda; endereco e descricao ficam).</summary>
@@ -2239,7 +2311,7 @@ namespace Genesis
             {
                 io.Campos.Add(CampoTag("TagSensor", "Sensor pá lado direito (DI)", "SEN_LEI_DIR do BL_SENSOR_RASPADOR.", Entradas));
                 io.Campos.Add(CampoTag("TagSensor2", "Sensor pá lado esquerdo (DI)", "SEN_LEI_LES.", Entradas));
-                io.Campos.Add(CampoTag("TagConf", "Confirmação da partida do raspador (DI)", "MOT_LEI_CNF.", Entradas));
+                io.Campos.Add(CampoTag("TagConf", "Confirmação da partida do raspador (DI)", "Só usada se não existir a partida do raspador (RAS.MOT). Com ela, MOT_LEI_CNF recebe a mesma confirmação do MOT_LEI_CN1 da partida.", Entradas));
                 io.Campos.Add(Nota("Gera as memórias de defeito " + p.TagDefDireito + " e " + p.TagDefEsquerdo + " (declare com endereço na página Tags)."));
             }
             else if (t.SenVazao)
@@ -2757,6 +2829,7 @@ namespace Genesis
             _txtMbIface = Tema.CaixaTexto();
             _txtMbPorta = Tema.CaixaTexto();
             _txtClock = Tema.CaixaTexto();
+            _txtClockPisca = Tema.CaixaTexto();
             _txtPadraoConf = Tema.CaixaTexto(); _txtPadraoHab = Tema.CaixaTexto();
             _txtPadraoHabInv = Tema.CaixaTexto(); _txtPadraoHabSoft = Tema.CaixaTexto();
             _txtPadraoHabBomba1 = Tema.CaixaTexto(); _txtPadraoHabBomba2 = Tema.CaixaTexto();
@@ -2809,6 +2882,7 @@ namespace Genesis
             add("Contato remoto/local (visualização)", _txtRemLoc, "Contato da bobina SI<n>.VIS.OFF junto com o CMD_AUT. Ex.: GER.REM_LOC_CMD_SEL. Vazio ou DB inexistente = só CMD_AUT.", false);
             add("Bit de primeiro ciclo", _txtPrimeiroCiclo, "Usado no automático das máquinas (ex.: FirstScan, %M1.0). Vazio ou inexistente = sem o contato.", false);
             add("Clock de 1 Hz", _txtClock, "Usado no totalizador do medidor do preparador (pulso = água habilitada E clock). Ex.: Clock_1Hz (%M0.5 com a clock memory ativa).", false);
+            add("Clock do pisca de defeito", _txtClockPisca, "Contato que faz o defeito piscar na IHM (rede FALHA no Main: alguma DEFEITOS_n <> 0 E este clock -> GER.SIS.VIS.LEI.DEF). Ex.: Clock_0.625Hz (%M0.6). Vazio = sem pisca.", false);
 
             secao("Defeitos e memórias", null);
             add(null, _chkAlocarDef, "Espelhos de defeito, memórias de proteção, defeito do exaustor e do raspador sem endereço "
@@ -2954,6 +3028,7 @@ namespace Genesis
             _txtMbIface.Text = Cfg.InterfaceModbus;
             _txtMbPorta.Text = Cfg.PortaModbus;
             _txtClock.Text = Cfg.TagClock1Hz;
+            _txtClockPisca.Text = Cfg.TagClockPisca;
             _txtPadraoConf.Text = Cfg.PadraoConf; _txtPadraoHab.Text = Cfg.PadraoHab;
             _txtPadraoHabInv.Text = Cfg.PadraoHabInv; _txtPadraoHabSoft.Text = Cfg.PadraoHabSoft;
             _txtPadraoHabBomba1.Text = Cfg.PadraoHabBomba1; _txtPadraoHabBomba2.Text = Cfg.PadraoHabBomba2;
@@ -3057,6 +3132,7 @@ namespace Genesis
             Cfg.InterfaceModbus = _txtMbIface.Text.Trim();
             Cfg.PortaModbus = _txtMbPorta.Text.Trim();
             Cfg.TagClock1Hz = _txtClock.Text.Trim();
+            Cfg.TagClockPisca = _txtClockPisca.Text.Trim();
             Cfg.PadraoConf = _txtPadraoConf.Text.Trim(); Cfg.PadraoHab = _txtPadraoHab.Text.Trim();
             Cfg.PadraoHabInv = _txtPadraoHabInv.Text.Trim(); Cfg.PadraoHabSoft = _txtPadraoHabSoft.Text.Trim();
             Cfg.PadraoHabBomba1 = _txtPadraoHabBomba1.Text.Trim(); Cfg.PadraoHabBomba2 = _txtPadraoHabBomba2.Text.Trim();
@@ -3120,6 +3196,7 @@ namespace Genesis
             _modificado = false;
             AtualizarTitulo();
             if (_sensores.Count > 0 && NomesAntigosDeSensores().Count > 0) OferecerNomesCompletosDeSensores();
+            if (NomesAntigosDoPreparador().Count > 0) OferecerNomesDoPreparador();
                         // Normaliza níveis duplicados (TBA → TB1, TB2...) e sugere regerar
             NormalizarNiveis();
         }

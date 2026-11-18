@@ -468,6 +468,7 @@ namespace Genesis
         public static string InterfaceModbus = "64";        // HW ID da interface PROFINET (InterfaceId do TCON_IP_v4)
         public static string PortaModbus = "502";           // porta local do servidor Modbus TCP
         public static string TagClock1Hz = "Clock_1Hz";     // clock de 1 Hz (clock memory): pulso do totalizador do preparador
+        public static string TagClockPisca = "Clock_0.625Hz"; // clock do pisca de defeito na IHM (GER.SIS.VIS.LEI.DEF)
         // Padrões de nomenclatura dos sinais de campo. Placeholders: {DESC}, {SUB}, {EQ}, {FN}.
         public static string PadraoConf = "CONF_{DESC}";
         public static string PadraoHab = "HAB_{DESC}";
@@ -568,6 +569,7 @@ namespace Genesis
                     else if (chave == "InterfaceModbus") InterfaceModbus = valor;
                     else if (chave == "PortaModbus") PortaModbus = valor;
                     else if (chave == "TagClock1Hz") TagClock1Hz = valor;
+                    else if (chave == "TagClockPisca") TagClockPisca = valor;
                     else if (chave == "PadraoConf") PadraoConf = valor;
                     else if (chave == "PadraoHab") PadraoHab = valor;
                     else if (chave == "PadraoHabInv") PadraoHabInv = valor;
@@ -620,6 +622,7 @@ namespace Genesis
                     "InterfaceModbus=" + InterfaceModbus,
                     "PortaModbus=" + PortaModbus,
                     "TagClock1Hz=" + TagClock1Hz,
+                    "TagClockPisca=" + TagClockPisca,
                     "PadraoConf=" + PadraoConf,
                     "PadraoHab=" + PadraoHab,
                     "PadraoHabInv=" + PadraoHabInv,

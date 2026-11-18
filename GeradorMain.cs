@@ -22,6 +22,9 @@ namespace Genesis
         {
             Log("--- MAIN (OB123) e DB GER ---");
 
+            // tag de emergencia geral (M502.0): cria no PLC se ainda nao existir (o Main usa ela)
+            GarantirTagEmergencia(plc, ios);
+
             var utf8 = new UTF8Encoding(false);
             PlcBlockGroup ondeBloco;
 
@@ -48,7 +51,7 @@ namespace Genesis
 
             // 4) Cria o OB123 novo
             string arqOb = Path.Combine(saida, "OB" + NumObMain + ".xml");
-            File.WriteAllText(arqOb, XmlObMain(partidas, ios, grupo), utf8);
+            File.WriteAllText(arqOb, XmlObMain(plc, partidas, ios, grupo), utf8);
             ImportarArquivo(grupo, arqOb);
 
             var compilar = new List<string> { NomeDbGer, NomeObMain };
@@ -66,35 +69,36 @@ namespace Genesis
             sb.AppendLine("      <AutoNumber>true</AutoNumber>");
             sb.AppendLine("      <Interface><Sections xmlns=\"" + NsIf + "\">");
             sb.AppendLine("        <Section Name=\"Static\">");
-            sb.AppendLine("          <Member Name=\"SIS\" Datatype=\"Struct\">");
+            const string R = " Remanence=\"Retain\" Accessibility=\"Public\"";   // todos os membros do GER sao Retain
+            sb.AppendLine("          <Member Name=\"SIS\" Datatype=\"Struct\"" + R + ">");
             // Telas
             for (int i = 1; i <= 5; i++)
             {
-                sb.AppendLine("            <Member Name=\"TL" + i + "\" Datatype=\"Struct\">");
-                sb.AppendLine("              <Member Name=\"CMD\" Datatype=\"Struct\">");
-                sb.AppendLine("                <Member Name=\"DES\" Datatype=\"Bool\" />");
+                sb.AppendLine("            <Member Name=\"TL" + i + "\" Datatype=\"Struct\"" + R + ">");
+                sb.AppendLine("              <Member Name=\"CMD\" Datatype=\"Struct\"" + R + ">");
+                sb.AppendLine("                <Member Name=\"DES\" Datatype=\"Bool\"" + R + " />");
                 sb.AppendLine("              </Member>");
                 sb.AppendLine("            </Member>");
             }
             // Vis / Def
-            sb.AppendLine("            <Member Name=\"VIS\" Datatype=\"Struct\">");
-            sb.AppendLine("              <Member Name=\"LEI\" Datatype=\"Struct\">");
-            sb.AppendLine("                <Member Name=\"DEF\" Datatype=\"Bool\" />");
+            sb.AppendLine("            <Member Name=\"VIS\" Datatype=\"Struct\"" + R + ">");
+            sb.AppendLine("              <Member Name=\"LEI\" Datatype=\"Struct\"" + R + ">");
+            sb.AppendLine("                <Member Name=\"DEF\" Datatype=\"Bool\"" + R + " />");
             sb.AppendLine("              </Member>");
             sb.AppendLine("            </Member>");
-            // SKL
-            sb.AppendLine("            <Member Name=\"SKL\" Datatype=\"Struct\">");
-            sb.AppendLine("              <Member Name=\"FIM_EXPEDIENTE\" Datatype=\"Bool\" />");
-            sb.AppendLine("              <Member Name=\"HAB_GRAFICOS\" Datatype=\"Bool\" />");
-            sb.AppendLine("              <Member Name=\"GESTOS_BOTOES\" Datatype=\"Bool\" />");
-            sb.AppendLine("            </Member>");
-            // LNG
-            sb.AppendLine("            <Member Name=\"LNG\" Datatype=\"Struct\">");
-            sb.AppendLine("              <Member Name=\"NUM_IDIOMA\" Datatype=\"Int\" />");
-            sb.AppendLine("            </Member>");
-            // Diversos
-            sb.AppendLine("            <Member Name=\"REM_LOC_CMD_SEL\" Datatype=\"Bool\" />");
             sb.AppendLine("          </Member>");
+            // SKL (fora da struct SIS)
+            sb.AppendLine("          <Member Name=\"SKL\" Datatype=\"Struct\"" + R + ">");
+            sb.AppendLine("            <Member Name=\"FIM_EXPEDIENTE\" Datatype=\"Bool\"" + R + " />");
+            sb.AppendLine("            <Member Name=\"HAB_GRAFICOS\" Datatype=\"Bool\"" + R + " />");
+            sb.AppendLine("            <Member Name=\"GESTOS_BOTOES\" Datatype=\"Bool\"" + R + " />");
+            sb.AppendLine("          </Member>");
+            // LNG (fora da struct SIS)
+            sb.AppendLine("          <Member Name=\"LNG\" Datatype=\"Struct\"" + R + ">");
+            sb.AppendLine("            <Member Name=\"NUM_IDIOMA\" Datatype=\"Int\"" + R + " />");
+            sb.AppendLine("          </Member>");
+            // Diversos (fora da struct SIS)
+            sb.AppendLine("          <Member Name=\"REM_LOC_CMD_SEL\" Datatype=\"Bool\"" + R + " />");
             sb.AppendLine("        </Section>");
             sb.AppendLine("      </Sections></Interface>");
             sb.AppendLine("      <MemoryLayout>Optimized</MemoryLayout>");
@@ -107,7 +111,7 @@ namespace Genesis
             return sb.ToString();
         }
 
-        private string XmlObMain(List<Partida> partidas, List<Io> ios, PlcBlockUserGroup grupo)
+        private string XmlObMain(PlcSoftware plc, List<Partida> partidas, List<Io> ios, PlcBlockUserGroup grupo)
         {
             _id = 1;
             var sb = new StringBuilder();
@@ -173,19 +177,48 @@ namespace Genesis
             sb.Append(Embrulhar(r2, "EMERGENCIA"));
 
             // REDE 3: DEFEITOS (Pisca no IHM)
+            //   (DEFEITOS_1 <> 0 OU DEFEITOS_2 <> 0 OU ... DEFEITOS_n <> 0) E Clock pisca -> GER.SIS.VIS.LEI.DEF
             var r3 = new Rede();
-            if (!string.IsNullOrWhiteSpace(Cfg.TagClock1Hz))
             {
-                int cClk = r3.Contato(Cfg.TagClock1Hz, false);
-                r3.ParaTrilho(cClk, "in");
-                string tagDef = "DEFEITOS_1";
-                var tagDefIo = ios.FirstOrDefault(x => x.Nome == tagDef);
-                if (tagDefIo != null)
+                string prefW = string.IsNullOrWhiteSpace(Cfg.NomeWordDefeitos) ? "DEFEITOS_" : Cfg.NomeWordDefeitos.Trim();
+                var nomesTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                ColetarTags(plc.TagTableGroup, nomesTags);
+                foreach (Io x in ios) if (!string.IsNullOrWhiteSpace(x.Nome)) nomesTags.Add(x.Nome.Trim());
+
+                var words = new List<string>();
+                while (nomesTags.Contains(prefW + (words.Count + 1))) words.Add(prefW + (words.Count + 1));
+
+                if (words.Count == 0)
                 {
-                    int cDef = r3.Contato(tagDef, false);
-                    r3.Fio(Rede.Pino(cClk, "out"), Rede.Pino(cDef, "in"));
+                    Log("AVISO: nenhuma word " + prefW + "1 encontrada; rede FALHA (PISCA IHM) nao gerada.");
+                }
+                else
+                {
+                    // saida do "OU" dos comparadores (ou do unico comparador)
+                    string saidaDef;
+                    var cmps = new List<int>();
+                    foreach (string w in words)
+                        cmps.Add(r3.Comparar("Ne", "Word", null, Rede.Ident(r3.Acesso("SYM|" + w)),
+                            Rede.Ident(r3.Acesso("LIT|Word|16#0"))));
+                    if (cmps.Count == 1) saidaDef = Rede.Pino(cmps[0], "out");
+                    else
+                    {
+                        int ouDef = r3.Ou(cmps.Count);
+                        for (int k = 0; k < cmps.Count; k++)
+                            r3.Fio(Rede.Pino(cmps[k], "out"), Rede.Pino(ouDef, "in" + (k + 1)));
+                        saidaDef = Rede.Pino(ouDef, "out");
+                    }
+
+                    // clock do pisca (se configurado)
+                    if (!string.IsNullOrWhiteSpace(Cfg.TagClockPisca))
+                    {
+                        int cClk = r3.ContatoTag(Cfg.TagClockPisca.Trim(), false);
+                        r3.Fio(saidaDef, Rede.Pino(cClk, "in"));
+                        saidaDef = Rede.Pino(cClk, "out");
+                    }
+
                     int bVis = r3.Bobina("Coil", NomeDbGer + ".SIS.VIS.LEI.DEF");
-                    r3.Fio(Rede.Pino(cDef, "out"), Rede.Pino(bVis, "in"));
+                    r3.Fio(saidaDef, Rede.Pino(bVis, "in"));
                     sb.Append(Embrulhar(r3, "FALHA (PISCA IHM)"));
                 }
             }
@@ -215,7 +248,11 @@ namespace Genesis
                     if (Gerador.EhSensor(p) || Gerador.EhPid(p)) continue;
 
                     string b = Cfg.Prefixo + p.Sub + "." + p.Eq + "." + p.Fn + ".";
-                    
+
+                    // Valvula: o comando de acionamento e CMD_ABR (nao CMD_LIG)
+                    TipoPartida tpRst = BuscarTipo(p.Tipo);
+                    string cmdLig = (tpRst != null && (tpRst.Valvula || tpRst.MaquinaAgua)) ? "CMD_ABR" : "CMD_LIG";
+
                     if (p.Papel == Maquinas.PapelSis)
                     {
                         // Núcleo do preparador: reseta o CMD_SEL
@@ -224,14 +261,14 @@ namespace Genesis
                     }
                     else if (Maquinas.EhPreparador(p))
                     {
-                        // Partes do preparador: reseta apenas o CMD_LIG
-                        int rLig = r.Bobina("RCoil", b + "CMD_LIG");
+                        // Partes do preparador: reseta apenas o CMD_LIG (CMD_ABR na valvula)
+                        int rLig = r.Bobina("RCoil", b + cmdLig);
                         r.Fio(Rede.Pino(ou, "out"), Rede.Pino(rLig, "in"));
                     }
                     else
                     {
-                        // Partidas normais e outras máquinas: reseta CMD_LIG e CMD_AUT
-                        int rLig = r.Bobina("RCoil", b + "CMD_LIG");
+                        // Partidas normais e outras máquinas: reseta CMD_LIG (CMD_ABR na valvula) e CMD_AUT
+                        int rLig = r.Bobina("RCoil", b + cmdLig);
                         int rAut = r.Bobina("RCoil", b + "CMD_AUT");
                         r.Fio(Rede.Pino(ou, "out"), Rede.Pino(rLig, "in"));
                         r.Fio(Rede.Pino(ou, "out"), Rede.Pino(rAut, "in"));

@@ -116,7 +116,8 @@ namespace Genesis
                 // Nao criar CMD_AUT/CMD_LIG nem SET_VEL individuais no mapa Modbus.
                 if (Maquinas.EhPreparador(p))
                 {
-                    m.Leituras.Add(Par(b + "LEI_ST1", "STATUS " + d));
+                    // valvula (ex.: alimentacao do preparador) tem LEI_STS; motores tem LEI_ST1
+                    m.Leituras.Add(Par(b + (t.Valvula ? "LEI_STS" : "LEI_ST1"), "STATUS " + d));
                     if (t.Bypass) m.Leituras.Add(Par(b + "LEI_ST2", "STATUS MOTOR 2 " + d));
                     if (t.Velocidade || t.Rede) m.Leituras.Add(Par(b + "LEI_VEL", "LEITURA VEL " + d));
                     if (Gerador.TemExaustor(p))
