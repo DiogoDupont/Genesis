@@ -62,6 +62,7 @@ namespace Genesis
         public bool RaspadorCircular;         public string TipoRasCircular = "Partida direta";
         public int Floculadores = 2;          public string TipoFloculador = "Partida inversor por rede";
         public string FloculadorIntermitente = "Minutos", FloculadorIntermitenteDes = "";   // idem
+        public bool FloculadorTemIntermitente = true;   // desmarcado: os agitadores do floculador ficam sem modo intermitente
         public bool BombaLodo = true;         public string TipoBombaLodo = "Partida inversor por rede";
         public int QtdLodo = 1;               public bool AltLodo;
         public bool AgitLodo = true;          public string TipoAgitLodo = "Partida direta";
@@ -190,14 +191,16 @@ namespace Genesis
             string nivEqu = null;
             if (o.NivelEqualizacao != QuimicoFlotador.NivelNenhum)
             {
-                sensor("SEN", "EQU", nivelFn("EQU", o.NivelEqualizacao), nivelTipo(o.NivelEqualizacao), "NÍVEL TANQUE EQUALIZAÇÃO");
-                nivEqu = "SEN.EQU." + nivelFn("EQU", o.NivelEqualizacao);
+                string fnEqu = nivelFn("EQU", o.NivelEqualizacao);   // calcula uma vez: depois que o sensor existe, o nome mudaria
+                sensor("SEN", "EQU", fnEqu, nivelTipo(o.NivelEqualizacao), "NÍVEL TANQUE EQUALIZAÇÃO");
+                nivEqu = "SEN.EQU." + fnEqu;
             }
             string nivLodo = null;
             if (o.NivelLodo != QuimicoFlotador.NivelNenhum && (o.BombaLodo || o.Raspador))
             {
-                sensor("SEN", "LFL", nivelFn("LFL", o.NivelLodo), nivelTipo(o.NivelLodo), "NÍVEL TANQUE LODO FLOTADO");
-                nivLodo = "SEN.LFL." + nivelFn("LFL", o.NivelLodo);
+                string fnLfl = nivelFn("LFL", o.NivelLodo);
+                sensor("SEN", "LFL", fnLfl, nivelTipo(o.NivelLodo), "NÍVEL TANQUE LODO FLOTADO");
+                nivLodo = "SEN.LFL." + fnLfl;
             }
 
             // --- equipamentos ---
@@ -206,7 +209,7 @@ namespace Genesis
             for (int i = 1; i <= Math.Max(0, Math.Min(2, o.Floculadores)); i++)
             {
                 Partida f = nova(sub, "FME", "AG" + i, o.TipoFloculador, "AGITADOR " + i + " FLOCULADOR MECÂNICO");
-                f.Intermitente = o.FloculadorIntermitente ?? ""; f.IntermitenteDes = string.IsNullOrEmpty(f.Intermitente) ? "" : (o.FloculadorIntermitenteDes ?? "");
+                f.Intermitente = o.FloculadorTemIntermitente ? (o.FloculadorIntermitente ?? "") : ""; f.IntermitenteDes = string.IsNullOrEmpty(f.Intermitente) ? "" : (o.FloculadorIntermitenteDes ?? "");
             }
 
             string alimentacaoDesligada = null;   // condicao "nenhuma bomba de alimentacao ligada"
@@ -270,8 +273,9 @@ namespace Genesis
                 }
                 else if (q.Nivel != QuimicoFlotador.NivelNenhum)
                 {
-                    sensor("SEN", q.Codigo, nivelFn(q.Codigo, q.Nivel), nivelTipo(q.Nivel), "NÍVEL TANQUE " + q.Nome);
-                    nivel = "SEN." + q.Codigo + "." + nivelFn(q.Codigo, q.Nivel) + ".LEI_BAI";
+                    string fnQ = nivelFn(q.Codigo, q.Nivel);
+                    sensor("SEN", q.Codigo, fnQ, nivelTipo(q.Nivel), "NÍVEL TANQUE " + q.Nome);
+                    nivel = "SEN." + q.Codigo + "." + fnQ + ".LEI_BAI";
                 }
 
                 // PID de pH (acido / alcalinizante)

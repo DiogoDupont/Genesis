@@ -1335,6 +1335,7 @@ namespace Genesis
         /// </summary>
         // true so enquanto se calcula o nome antigo (ordem e "DE" de antes), para reconhecer tags automaticas antigas
         private static bool _nomesAntigosPreparador;
+        private static bool _nomesPreparadorV4;   // versao intermediaria: so o prefixo MEDIDOR_DE_VAZAO_ ainda tinha o DE
 
         private static string SemDe(string t)
         {
@@ -1416,7 +1417,7 @@ namespace Genesis
                     if (!legado && t.SenVazao && Maquinas.EhPreparador(p) && p.Papel == Maquinas.PapelVazao)
                     {
                         string maquina = LimparNomeTag(SemDe(Regex.Replace(p.Descricao ?? "", @"\s*-\s*.*$", "")));   // sem o "DE"
-                        nomes["TagSensor"] = ColapsarRepetidas("MEDIDOR_DE_VAZAO_" + maquina);
+                        nomes["TagSensor"] = ColapsarRepetidas((_nomesAntigosPreparador || _nomesPreparadorV4 ? "MEDIDOR_DE_VAZAO_" : "MEDIDOR_VAZAO_") + maquina);
                     }
                     else
                     {
@@ -1513,19 +1514,23 @@ namespace Genesis
             var lista = new List<Tuple<Partida, string, string, string>>();
             foreach (Partida p in _partidas.Concat(_sensores).Where(x => Maquinas.EhPreparador(x)).ToList())
             {
-                Dictionary<string, string> velhos;
+                Dictionary<string, string> velhos, velhosV4;
                 _nomesAntigosPreparador = true;
                 try { velhos = NomesAutomaticosIo(p, false); }
                 finally { _nomesAntigosPreparador = false; }
+                _nomesPreparadorV4 = true;
+                try { velhosV4 = NomesAutomaticosIo(p, false); }
+                finally { _nomesPreparadorV4 = false; }
                 foreach (var par in NomesAutomaticosIo(p, false))
                 {
-                    string velho;
-                    if (!velhos.TryGetValue(par.Key, out velho) || string.Equals(velho, par.Value, StringComparison.Ordinal)) continue;
                     PropertyInfo pi = typeof(Partida).GetProperty(par.Key);
                     if (pi == null) continue;
                     string atual = Convert.ToString(pi.GetValue(p, null) ?? "");
-                    if (string.Equals(atual, velho, StringComparison.OrdinalIgnoreCase))
-                        lista.Add(Tuple.Create(p, par.Key, atual, par.Value));
+                    if (string.IsNullOrEmpty(atual)) continue;
+                    string v1, v2;
+                    bool casa = (velhos.TryGetValue(par.Key, out v1) && v1 != par.Value && string.Equals(atual, v1, StringComparison.OrdinalIgnoreCase))
+                             || (velhosV4.TryGetValue(par.Key, out v2) && v2 != par.Value && string.Equals(atual, v2, StringComparison.OrdinalIgnoreCase));
+                    if (casa) lista.Add(Tuple.Create(p, par.Key, atual, par.Value));
                 }
             }
             return lista;
@@ -1609,7 +1614,7 @@ namespace Genesis
 
                 
 
-                private void NormalizarNiveis()
+                private void NormalizarNiveis(bool silencioso = false)
         {
             var todas = _partidas.Concat(_sensores).Concat(_pids).Cast<Partida>().ToList();
             List<Partida> ajustadas;
@@ -1628,14 +1633,20 @@ namespace Genesis
             foreach (Cadastro c in new[] { _cadPart, _cadSen, _cadPid }) MontarEditor(c, true);
             AoMudarDados();
 
+            if (silencioso)
+            {
+                Log("Níveis ajustados automaticamente: " + avisos.Count + ".");
+                return;
+            }
+
             string lista = string.Join("\n", avisos.Take(15).ToArray());
             if (avisos.Count > 15) lista += "\n... e mais " + (avisos.Count - 15);
 
             Action oferta = delegate
             {
                 Dialogo.Info(this,
-                    "Encontramos " + ajustadas.Count + " sensor(es) com nome duplicado no projeto.\n\n"
-                    + "Os sensores foram renomeados automaticamente:\n\n"
+                    "Encontramos " + avisos.Count + " ajuste(s) de níveis no projeto (nomes duplicados ou intertravamento apontando para o nível errado).\n\n"
+                    + "Ajustes feitos automaticamente:\n\n"
                     + lista
                     + "\n\nOs intertravamentos que usavam esses sensores foram atualizados.\n\n"
                     + "⚠ SUGERIMOS GERAR TUDO NOVAMENTE no TIA Portal para aplicar as novas tags.");
@@ -3950,6 +3961,7 @@ namespace Genesis
                 if (res.CanceladoPeloUsuario) return;
 
                 if (_maqAtual == plano.IdAntigo && plano.Renomeia) _maqAtual = plano.IdNovo;
+                NormalizarNiveis(true);
                 ReligarTags();
                 foreach (Cadastro c in new[] { _cadPart, _cadSen, _cadPid }) MontarEditor(c, true);
                 AoMudarDados();
@@ -4246,6 +4258,7 @@ namespace Genesis
                     else if (Gerador.EhPid(p)) _pids.Add(p);
                     else _partidas.Add(p);
                 }
+                NormalizarNiveis(true);
                 AoMudarDados();
                 AtualizarMaquinas();
                 Log("Flotador " + dlg.Opcoes.Sub + " criado: " + linhas.Count + " itens, com intertravamentos e modulações. "
@@ -4361,6 +4374,7 @@ namespace Genesis
                     }
                 }
                 finally { _carregando = false; }
+                NormalizarNiveis(true);
                 AoMudarDados();
                 AtualizarMaquinas();
                 if (novas.Count > 0)

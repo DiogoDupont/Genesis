@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Genesis.Fabricas
 {
@@ -86,6 +87,58 @@ namespace Genesis.Fabricas
         // ===================================================================
         //  NORMALIZAÇÃO DE DUPLICADOS
         // ===================================================================
+        /// <summary>
+        /// Nome da maquina/subsistema para usar na descricao de um nivel repetido: FLO vira FLOTADOR, ADN1 vira ADENSADOR 1.
+        /// Se nao reconhece a maquina, devolve o proprio codigo.
+        /// </summary>
+        public static string NomeAmigavelMaquina(IEnumerable<Partida> todas, string codigo)
+        {
+            if (string.IsNullOrWhiteSpace(codigo)) return codigo ?? "";
+            string palavra = null;
+            foreach (Partida x in todas)
+            {
+                if (!(string.Equals(x.Maquina, codigo, StringComparison.OrdinalIgnoreCase)
+                      || string.Equals(x.Subsistema, codigo, StringComparison.OrdinalIgnoreCase))) continue;
+                if (x.Receita == Maquinas.Flotador) { palavra = "FLOTADOR"; break; }
+                if (x.Receita == Maquinas.SubsistemaAdensador || x.Receita == Maquinas.Adensador) { palavra = "ADENSADOR"; break; }
+            }
+            if (palavra == null) return codigo;
+            string digitos = new string(codigo.Reverse().TakeWhile(char.IsDigit).Reverse().ToArray());
+            return digitos.Length > 0 ? palavra + " " + digitos : palavra;
+        }
+
+        private static string TirarSufixo(string desc, params string[] sufixos)
+        {
+            foreach (string suf in sufixos)
+                if (!string.IsNullOrEmpty(suf) && desc.EndsWith(" " + suf, StringComparison.Ordinal))
+                    return desc.Substring(0, desc.Length - suf.Length - 1).Trim();
+            return desc;
+        }
+
+        private static string ColocarSufixo(string desc, string sufixo, string codigo)
+        {
+            if (string.IsNullOrEmpty(sufixo)) return desc;
+            if (desc == sufixo || desc.EndsWith(" " + sufixo, StringComparison.Ordinal)) return desc;
+            if (!string.IsNullOrEmpty(codigo) && codigo != sufixo && desc.EndsWith(" " + codigo, StringComparison.Ordinal))
+                return (desc.Substring(0, desc.Length - codigo.Length - 1).Trim() + " " + sufixo).Trim();
+            return (desc + " " + sufixo).Trim();
+        }
+
+        private static string FamiliaDoSensor(Partida x)
+        {
+            if (x.Tipo != null && x.Tipo.Contains("analógico")) return "TN";
+            if (x.Tipo != null && x.Tipo.Contains("alto")) return "TA";
+            return "TB";
+        }
+
+        private static string FamiliaDoFn(string fn)
+        {
+            if (fn == "TAN" || fn.StartsWith("TN", StringComparison.Ordinal)) return "TN";
+            if (fn == "TAL" || Regex.IsMatch(fn, @"^TA\d+$")) return "TA";
+            if (fn.StartsWith("TB", StringComparison.Ordinal)) return "TB";
+            return null;
+        }
+
         public static List<string> NormalizarNiveisDuplicados(IList<Partida> todas, out List<Partida> ajustadas)
         {
             ajustadas = new List<Partida>();
@@ -96,14 +149,7 @@ namespace Genesis.Fabricas
                 .Where(x => x.Sub == "SEN" && !string.IsNullOrEmpty(x.Fn))
                 .Where(x => x.Tipo != null && x.Tipo.Contains("Sensor nível"))
                 .Where(x => string.IsNullOrEmpty(x.FnNivel))   // PULA os que têm Fn manual
-                .GroupBy(x =>
-                {
-                    string familia;
-                    if (x.Tipo.Contains("analógico")) familia = "TN";
-                    else if (x.Tipo.Contains("alto")) familia = "TA";
-                    else familia = "TB";
-                    return x.Eq.ToUpperInvariant() + "|" + familia;
-                })
+                .GroupBy(x => x.Eq.ToUpperInvariant() + "|" + FamiliaDoSensor(x))
                 .ToList();
 
             foreach (var grupo in grupos)
@@ -120,51 +166,87 @@ namespace Genesis.Fabricas
 
                 for (int i = 0; i < lista.Count; i++)
                 {
-                    string fnCorreto = lista.Count == 1
-                        ? fnUnico
-                        : prefixoNumerado + (i + 1).ToString();
+                    Partida sen = lista[i];
+                    string fnCorreto = lista.Count == 1 ? fnUnico : prefixoNumerado + (i + 1).ToString();
+                    string fnAntigo = sen.Fn;
+                    string descAntiga = sen.Descricao ?? "";
 
-                    if (lista[i].Fn == fnCorreto) continue;
+                    bool mudouFn = sen.Fn != fnCorreto;
+                    if (mudouFn)
+                    {
+                        string chave = sen.Eq.ToUpperInvariant() + "|" + sen.Fn;
+                        if (!renomeacoes.ContainsKey(chave)) renomeacoes[chave] = fnCorreto;
+                        sen.Fn = fnCorreto;
+                    }
 
-                    string chave = lista[i].Eq.ToUpperInvariant() + "|" + lista[i].Fn;
-                    if (!renomeacoes.ContainsKey(chave))
-                        renomeacoes[chave] = fnCorreto;
-
-                    string descAntiga = lista[i].Descricao ?? "";
-                    string fnAntigo = lista[i].Fn;
-                    lista[i].Fn = fnCorreto;
-
-                    string sufixo = !string.IsNullOrEmpty(lista[i].Subsistema) ? lista[i].Subsistema : lista[i].Maquina;
+                    // descricao: o principal fica sem o nome da maquina; os demais ganham (FLOTADOR, ADENSADOR 1...)
+                    string codigo = !string.IsNullOrEmpty(sen.Subsistema) ? sen.Subsistema : sen.Maquina;
+                    string sufixo = NomeAmigavelMaquina(todas, codigo);
                     bool ehPrincipal = lista.Count == 1 || i == 0;
+                    string novaDesc = ehPrincipal ? TirarSufixo(descAntiga, sufixo, codigo) : ColocarSufixo(descAntiga, sufixo, codigo);
+                    bool mudouDesc = !string.Equals(novaDesc, descAntiga, StringComparison.Ordinal);
+                    if (mudouDesc) sen.Descricao = novaDesc;
 
-                    if (ehPrincipal)
+                    if (mudouFn || mudouDesc)
                     {
-                        if (!string.IsNullOrEmpty(sufixo) && descAntiga.EndsWith(" " + sufixo))
-                            lista[i].Descricao = descAntiga.Substring(0, descAntiga.Length - sufixo.Length - 1).Trim();
+                        ajustadas.Add(sen);
+                        avisos.Add("SEN." + sen.Eq + "." + fnAntigo + "  →  SEN." + sen.Eq + "." + sen.Fn
+                            + (mudouDesc ? "  (descrição: " + novaDesc + ")" : ""));
                     }
-                    else
-                    {
-                        if (!string.IsNullOrEmpty(sufixo) && !descAntiga.EndsWith(sufixo))
-                            lista[i].Descricao = (descAntiga + " " + sufixo).Trim();
-                    }
-
-                    ajustadas.Add(lista[i]);
-                    avisos.Add("SEN." + lista[i].Eq + "." + fnAntigo + "  →  SEN." + lista[i].Eq + "." + fnCorreto);
                 }
             }
 
-            if (renomeacoes.Count == 0) return avisos;
+            // intertravamentos: troca todas as referencias de uma vez (uma troca nao pode ser refeita pela seguinte)
+            if (renomeacoes.Count > 0)
+            {
+                var rxRef = new Regex(@"SEN\.([A-Za-z0-9_]+)\.([A-Za-z0-9_]+)\.", RegexOptions.CultureInvariant);
+                foreach (var p in todas)
+                {
+                    if (string.IsNullOrEmpty(p.CondicoesInt)) continue;
+                    string novo = rxRef.Replace(p.CondicoesInt, delegate (Match m)
+                    {
+                        string novoFn;
+                        return renomeacoes.TryGetValue(m.Groups[1].Value.ToUpperInvariant() + "|" + m.Groups[2].Value, out novoFn)
+                            ? "SEN." + m.Groups[1].Value + "." + novoFn + "."
+                            : m.Value;
+                    });
+                    if (novo != p.CondicoesInt) p.CondicoesInt = novo;
+                }
+            }
 
+            // intertravamentos que apontam para um nivel que nao existe (ou que ficou com o nome de outra maquina):
+            // aponta para o nivel certo do mesmo equipamento (mesma familia e mesma maquina/subsistema da partida)
+            var sensores = todas.Where(x => x.Sub == "SEN" && !string.IsNullOrEmpty(x.Fn)
+                && x.Tipo != null && x.Tipo.Contains("Sensor nível")).ToList();
+            var rxNivel = new Regex(@"SEN\.([A-Za-z0-9_]+)\.([A-Za-z0-9_]+)\.(LEI_BAI|LEI_ALT)", RegexOptions.CultureInvariant);
             foreach (var p in todas)
             {
                 if (string.IsNullOrEmpty(p.CondicoesInt)) continue;
-                string novo = p.CondicoesInt;
-                foreach (var ren in renomeacoes)
+                string escopo = !string.IsNullOrEmpty(p.Maquina) ? p.Maquina : p.Subsistema;
+                string antes = p.CondicoesInt;
+                string novo = rxNivel.Replace(antes, delegate (Match m)
                 {
-                    string[] partes = ren.Key.Split('|');
-                    novo = novo.Replace("SEN." + partes[0] + "." + partes[1] + ".", "SEN." + partes[0] + "." + ren.Value + ".");
+                    string eq = m.Groups[1].Value, fn = m.Groups[2].Value;
+                    string fam = FamiliaDoFn(fn);
+                    if (fam == null) return m.Value;
+                    var cands = sensores.Where(x => string.Equals(x.Eq, eq, StringComparison.OrdinalIgnoreCase) && FamiliaDoSensor(x) == fam).ToList();
+                    if (cands.Count == 0) return m.Value;
+                    Partida alvo = null;
+                    if (cands.Count == 1) alvo = cands[0];
+                    else if (!string.IsNullOrEmpty(escopo))
+                    {
+                        var doEscopo = cands.Where(x => string.Equals(x.Maquina, escopo, StringComparison.OrdinalIgnoreCase)
+                            || string.Equals(x.Subsistema, escopo, StringComparison.OrdinalIgnoreCase)).ToList();
+                        if (doEscopo.Count == 1) alvo = doEscopo[0];
+                    }
+                    if (alvo == null || alvo.Fn == fn) return m.Value;
+                    return "SEN." + eq + "." + alvo.Fn + "." + m.Groups[3].Value;
+                });
+                if (novo != antes)
+                {
+                    p.CondicoesInt = novo;
+                    avisos.Add("Intertravamento de " + p.Sub + "." + p.Eq + "." + p.Fn + " apontava para nível errado: ajustado");
                 }
-                if (novo != p.CondicoesInt) p.CondicoesInt = novo;
             }
 
             return avisos;

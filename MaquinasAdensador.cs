@@ -130,6 +130,9 @@ namespace Genesis
                 l.Add(niv);
             }
 
+            // confirmacao do adensador (HAB ou RUN conforme o tipo do motor): alimentacao e higienizacao nao ligam com ele desligado
+            string tagMot = o.TipoMotor.Contains("rede") ? db + "." + db + ".MOT.LEI_RUN" : db + "." + db + ".MOT.LEI_HAB";
+
             if (o.TemBombaAlim)
             {
                 var bombaAlim = FabricaPartida.CriarAcionamento(db, "ALM", "BBA", o.TipoBombaAlim,
@@ -145,7 +148,6 @@ namespace Genesis
                 if (o.TemNivelAlim && !string.IsNullOrEmpty(fnNiv))
                     conds.Add("SEN." + eqNiv + "." + fnNiv + ".LEI_BAI");
 
-                string tagMot = o.TipoMotor.Contains("rede") ? db + "." + db + ".MOT.LEI_RUN" : db + "." + db + ".MOT.LEI_HAB";
                 conds.Add("NÃO " + tagMot);
 
                 bombaAlim.CondicoesInt = string.Join("\n", conds);
@@ -157,6 +159,8 @@ namespace Genesis
                 var bombaHig = FabricaPartida.CriarAcionamento(db, "HIG", "BBA", o.TipoBombaHig,
                     "BOMBA HIGIENIZACAO " + nomeBase, maquina: db, subsistema: "", papel: PapelAdHigBba);
                 bombaHig.Auto = true;
+                bombaHig.Intertravamento = true;
+                bombaHig.CondicoesInt = "NÃO " + tagMot;
                 if (o.TemIntermitenteHig)
                 {
                     bombaHig.Intermitente = o.TempoLigadoHig;
@@ -170,11 +174,10 @@ namespace Genesis
                 var valvulaHig = FabricaPartida.CriarAcionamento(db, "HIG", "VAL", o.TipoValvulaHig,
                     "VALVULA HIGIENIZACAO " + nomeBase, maquina: db, subsistema: "", papel: PapelAdHigVal);
                 valvulaHig.Auto = true;
-                if (o.TemBombaHig)
-                {
-                    valvulaHig.Intertravamento = true;
-                    valvulaHig.CondicoesInt = "NÃO " + db + ".HIG.BBA.LEI_HAB";
-                }
+                valvulaHig.Intertravamento = true;
+                valvulaHig.CondicoesInt = o.TemBombaHig
+                    ? "NÃO " + db + ".HIG.BBA.LEI_HAB" + "\n" + "NÃO " + tagMot
+                    : "NÃO " + tagMot;
                 l.Add(valvulaHig);
             }
 
@@ -285,9 +288,9 @@ namespace Genesis
 
             // 4) Periféricos opcionais
             if (o.IncluirAgitLodoAdensado)
-                l.Add(FabricaPartida.CriarAcionamento(db, "LAD", "AGT", o.TipoAgitLodo, "AGITADOR LODO ADENSADO " + nomeBase, subsistema: db, papel: "LAD_AGT"));
+                l.Add(FabricaPartida.CriarAcionamento(db, "LAD", "AGT", o.TipoAgitLodo, "AGITADOR LODO ADENSADO", subsistema: db, papel: "LAD_AGT"));
             if (o.IncluirAgitTanqueEqualizacao)
-                l.Add(FabricaPartida.CriarAcionamento(db, "EQU", "AGT", o.TipoAgitEqual, "AGITADOR TANQUE EQUALIZACAO " + nomeBase, subsistema: db, papel: "EQU_AGT"));
+                l.Add(FabricaPartida.CriarAcionamento(db, "EQU", "AGT", o.TipoAgitEqual, "AGITADOR TANQUE EQUALIZACAO", subsistema: db, papel: "EQU_AGT"));
             if (o.IncluirFloculador)
                 l.Add(FabricaPartida.CriarAcionamento(db, "FME", "AGT", o.TipoFloculador, "FLOCULADOR MECANICO " + nomeBase, subsistema: db, papel: "FME_AGT"));
 

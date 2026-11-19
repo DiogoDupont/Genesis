@@ -87,6 +87,7 @@ namespace Genesis
                 o.FloculadorIntermitente = fme[0].Intermitente ?? ""; o.FloculadorIntermitenteDes = fme[0].IntermitenteDes ?? "";
             }
             else { o.FloculadorIntermitente = ""; o.FloculadorIntermitenteDes = ""; }
+            o.FloculadorTemIntermitente = !string.IsNullOrEmpty(o.FloculadorIntermitente);
 
             // bombas e agitadores
             Action<string, Action<bool>, Action<string>, Action<int>, Action<bool>> bombas = delegate (string eq, Action<bool> tem, Action<string> tipo, Action<int> qtd, Action<bool> alt)

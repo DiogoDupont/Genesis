@@ -103,10 +103,15 @@ namespace Genesis
             var qtdFme = Lista(new[] { "0", "1", "2" }, Opcoes.Floculadores.ToString(), v => Opcoes.Floculadores = int.Parse(v));
             Linha(eq, Rot("Floculador mecânico (agitadores)"), Lista(tipos, Opcoes.TipoFloculador, v => Opcoes.TipoFloculador = v),
                 qtdFme, new Label());
-            Linha(eq, Rot("   Floculador: tempo ligado"), Unidade(Opcoes.FloculadorIntermitente, v => Opcoes.FloculadorIntermitente = v, false),
-                Nota("unidade do tempo ligado"), new Label());
-            Linha(eq, Rot("   Floculador: tempo desligado"), Unidade(Opcoes.FloculadorIntermitenteDes, v => Opcoes.FloculadorIntermitenteDes = v, true),
-                Nota("unidade do tempo desligado"), new Label());
+            CheckBox chkFlcInt = Marca("Modo intermitente nos agitadores", Opcoes.FloculadorTemIntermitente, v => Opcoes.FloculadorTemIntermitente = v);
+            Linha(eq, Rot("   Floculador: intermitente"), chkFlcInt, new Label(), new Label());
+            ComboBox cbFlcLig = Unidade(Opcoes.FloculadorIntermitente, v => Opcoes.FloculadorIntermitente = v, false);
+            ComboBox cbFlcDes = Unidade(Opcoes.FloculadorIntermitenteDes, v => Opcoes.FloculadorIntermitenteDes = v, true);
+            Linha(eq, Rot("   Floculador: tempo ligado"), cbFlcLig, Nota("unidade do tempo ligado"), new Label());
+            Linha(eq, Rot("   Floculador: tempo desligado"), cbFlcDes, Nota("unidade do tempo desligado"), new Label());
+            Action ajustaFlcInt = delegate { cbFlcLig.Enabled = chkFlcInt.Checked; cbFlcDes.Enabled = chkFlcInt.Checked; };
+            chkFlcInt.CheckedChanged += delegate { ajustaFlcInt(); };
+            ajustaFlcInt();
             item("Bomba lodo flotado", Opcoes.BombaLodo, v => Opcoes.BombaLodo = v, Opcoes.TipoBombaLodo, v => Opcoes.TipoBombaLodo = v,
                 qtd(Opcoes.QtdLodo, v => Opcoes.QtdLodo = v), Marca("Alternância", Opcoes.AltLodo, v => Opcoes.AltLodo = v));
             item("Agitador lodo flotado", Opcoes.AgitLodo, v => Opcoes.AgitLodo = v, Opcoes.TipoAgitLodo, v => Opcoes.TipoAgitLodo = v, null, null);
@@ -147,8 +152,10 @@ namespace Genesis
             var botoes = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 62, FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(16, 12, 6, 0), BackColor = Tema.FundoEscuro };
             var ok = Tema.Botao(_editando ? "Aplicar alterações" : "Criar flotador", true, delegate { Criar(); });
             var cancela = Tema.Botao("Cancelar", false, delegate { DialogResult = DialogResult.Cancel; });
+            var btnPerfil = Tema.Botao("Salvar como perfil…", false, delegate { SalvarComoPerfil(); }, "salvar");
             botoes.Controls.Add(ok);
             botoes.Controls.Add(cancela);
+            botoes.Controls.Add(btnPerfil);
 
             Controls.Add(corpo);
             Controls.Add(botoes);
